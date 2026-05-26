@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # PostgreSQL для хранения данных
+  postgres:
+    image: postgres:16-alpine
+    container_name: music_postgres
+    environment:
+      POSTGRES_DB: music_rooms
+      POSTGRES_USER: music_user
+      POSTGRES_PASSWORD: music_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U music_user -d music_rooms"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis для кеша, Pub/Sub, состояния плеера
+  redis:
+    image: redis:7.4-alpine
+    container_name: music_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # RabbitMQ как брокер сообщений для STOMP и межсервисного общения
+  rabbitmq:
+    image: rabbitmq:4.0-management-alpine
+    container_name: music_rabbitmq
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI
+      - "61613:61613" # STOMP
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # (Опционально) Authorization Server – если нужен свой
+  # В реальном проекте лучше использовать Keycloak или OIDC-провайдера
+  # Но для локальной разработки подойдёт заглушка
+  # Мы пока что будем получать JWT из внешнего сервиса.
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:

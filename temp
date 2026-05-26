@@ -1,0 +1,35 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: room-service
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/music_rooms
+    username: music_user
+    password: music_pass
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Временно отключим проверку JWT, чтобы протестировать API, позже включим с реальным Auth Server
+          jwk-set-uri: "http://localhost:9000/protocol/openid-connect/certs"
+
+logging:
+  level:
+    com.music.room: DEBUG
