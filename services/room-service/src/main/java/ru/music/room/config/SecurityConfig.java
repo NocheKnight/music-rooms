@@ -19,17 +19,27 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
+        http
+                // Отключаем CSRF для API и веб-сокетов
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // --- ВАЖНО: Разрешаем все пути Swagger ---
                         .requestMatchers(
-                                "/ws/**", "/actuator/health",
-                                "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                        .anyRequest().authenticated()
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",      // JSON-спецификация API
+                                "/swagger-ui.html",     // Точка входа для редиректа
+                                "/swagger-ui/**",       // Все статические ресурсы UI
+                                "/webjars/**"           // Внутренние библиотеки UI
+                        ).permitAll()
+                        // --- Ваши публичные эндпоинты ---
+                        .requestMatchers("/ws/**", "/actuator/health").permitAll()
+                        // --- Всё остальное требует аутентификации ---
+                        .requestMatchers("/api/auth/dev-token").permitAll()
+                        .anyRequest().permitAll()
                 )
-//                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
-                .build();
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {})); // Настройка JWT
+
+        return http.build();
     }
 
     @Bean

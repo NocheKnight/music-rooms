@@ -1,8 +1,17 @@
 spring:
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    schemas: public
+  jpa:
+    hibernate:
+      ddl-auto: none
+
   datasource:
     url: jdbc:postgresql://localhost:5432/music_rooms
     username: music_user
     password: music_pass
+
   redis:
     host: localhost
     port: 6379
@@ -15,5 +24,10 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:9000   # пока заглушка
+          issuer-uri: http://localhost:8081/realms/music-realm
           jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
+
+  logging:
+    level:
+      org.flywaydb: DEBUG
+      org.springframework.jdbc: DEBUG
