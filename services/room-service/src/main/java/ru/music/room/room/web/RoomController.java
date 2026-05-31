@@ -1,5 +1,6 @@
 package ru.music.room.room.web;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import ru.music.room.room.dto.CreateRoomRequest;
 import ru.music.room.room.dto.JoinRoomRequest;
 import ru.music.room.room.dto.RoomResponse;
@@ -23,18 +24,19 @@ public class RoomController {
     @PostMapping
     public ResponseEntity<RoomResponse> createRoom(
             @Valid @RequestBody CreateRoomRequest request,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal String userIdStr   // теперь principal - String
     ) {
-        UUID userId = UUID.fromString(jwt.getSubject());
-        return ResponseEntity.status(HttpStatus.CREATED).body(roomService.createRoom(request, userId));
+        UUID userId = UUID.fromString(userIdStr);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(roomService.createRoom(request, userId));
     }
 
     @PostMapping("/join")
     public ResponseEntity<RoomResponse> joinRoom(
             @Valid @RequestBody JoinRoomRequest request,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal String userIdStr   // теперь principal - String
     ) {
-        UUID userId = UUID.fromString(jwt.getSubject());
+        UUID userId = UUID.fromString(userIdStr);
         return ResponseEntity.ok(roomService.joinRoom(request, userId));
     }
 
