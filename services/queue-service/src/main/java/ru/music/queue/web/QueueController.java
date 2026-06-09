@@ -23,7 +23,7 @@ public class QueueController {
 
     @PostMapping("/tracks")
     public ResponseEntity<TrackResponse> addTrack(
-            @PathVariable UUID roomId,
+            @PathVariable(name = "roomId") UUID roomId,
             @Valid @RequestBody AddTrackRequest request
             /*@AuthenticationPrincipal Jwt jwt*/) {
         //UUID userId = UUID.fromString(jwt.getSubject());
@@ -33,33 +33,33 @@ public class QueueController {
     }
 
     @GetMapping("/tracks")
-    public ResponseEntity<QueueResponse> getQueue(@PathVariable UUID roomId) {
+    public ResponseEntity<QueueResponse> getQueue(@PathVariable(name = "roomId") UUID roomId) {
         return ResponseEntity.ok(queueService.getQueue(roomId));
     }
 
     @GetMapping("/tracks/current")
-    public ResponseEntity<TrackResponse> getCurrentTrack(@PathVariable UUID roomId) {
+    public ResponseEntity<TrackResponse> getCurrentTrack(@PathVariable(name = "roomId") UUID roomId) {
         return ResponseEntity.ok(queueService.getCurrentTrack(roomId));
     }
 
     @PutMapping("/tracks/{trackId}/move")
     public ResponseEntity<TrackResponse> moveTrack(
-            @PathVariable UUID roomId,
-            @PathVariable UUID trackId,
+            @PathVariable(name = "roomId") UUID roomId,
+            @PathVariable(name = "trackId") UUID trackId,
             @Valid @RequestBody MoveTrackRequest request) {
         return ResponseEntity.ok(queueService.moveTrack(roomId, trackId, request.getNewPosition()));
     }
 
     @DeleteMapping("/tracks/{trackId}")
     public ResponseEntity<Map<String, String>> removeTrack(
-            @PathVariable UUID roomId,
-            @PathVariable UUID trackId) {
+            @PathVariable(name = "roomId") UUID roomId,
+            @PathVariable(name = "trackId") UUID trackId) {
         queueService.removeTrack(roomId, trackId);
         return ResponseEntity.ok(Map.of("message", "Track removed successfully"));
     }
 
     @DeleteMapping("/tracks")
-    public ResponseEntity<Map<String, String>> clearQueue(@PathVariable UUID roomId) {
+    public ResponseEntity<Map<String, String>> clearQueue(@PathVariable(name = "roomId") UUID roomId) {
         queueService.clearQueue(roomId);
         return ResponseEntity.ok(Map.of("message", "Queue cleared successfully"));
     }

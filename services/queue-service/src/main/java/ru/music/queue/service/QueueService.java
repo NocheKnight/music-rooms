@@ -103,10 +103,8 @@ public class QueueService {
         }
 
         if (newPosition < oldPosition) {
-            // Перемещение вверх - сдвигаем треки между новой и старой позицией вниз
             queueItemRepository.shiftPositionsBetweenForward(roomId, newPosition, oldPosition);
         } else {
-            // Перемещение вниз - сдвигаем треки между старой и новой позицией вверх
             queueItemRepository.shiftPositionsBetweenBackward(roomId, oldPosition, newPosition);
         }
 
