@@ -9,6 +9,8 @@
     <file url="file://$PROJECT_DIR$/libs/common-utils/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/services/api-gateway/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/services/api-gateway/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/media-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/media-service/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/services/queue-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/services/queue-service/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/services/room-service/src/main/java" charset="UTF-8" />
