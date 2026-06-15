@@ -8,6 +8,8 @@
         <option value="$PROJECT_DIR$/services/room-service/RoomService/pom.xml" />
         <option value="$PROJECT_DIR$/services/queue-service/pom.xml" />
         <option value="$PROJECT_DIR$/media-service/pom.xml" />
+        <option value="$PROJECT_DIR$/services/media-service/pom.xml" />
+        <option value="$PROJECT_DIR$/services/api-gateway/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
@@ -16,7 +18,7 @@
       </set>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="openjdk-25" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="ms-17" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>

@@ -2,13 +2,14 @@ package ru.music.media;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.music.media.model.AudioStream;
 
 import java.io.InputStream;
 
 @Service
 @RequiredArgsConstructor
 public class AudioStreamService {
-    public InputStream getAudioStream(String youtubeUrl) throws Exception {
+    public AudioStream getAudioStream(String youtubeUrl) throws Exception {
 
         ProcessBuilder ytDlp = new ProcessBuilder(
                 "yt-dlp",
@@ -39,6 +40,6 @@ public class AudioStreamService {
 
         Process ffmpegProcess = ffmpeg.start();
 
-        return ffmpegProcess.getInputStream();
+        return new AudioStream(ffmpegProcess.getInputStream(), ffmpegProcess);
     }
 }
