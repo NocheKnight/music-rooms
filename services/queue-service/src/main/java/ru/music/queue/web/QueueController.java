@@ -10,6 +10,7 @@ import ru.music.queue.dto.MoveTrackRequest;
 import ru.music.queue.dto.QueueResponse;
 import ru.music.queue.dto.TrackResponse;
 import ru.music.queue.service.QueueService;
+import ru.music.queue.service.implementations.DefaultQueueService;
 
 import java.util.Map;
 import java.util.UUID;
@@ -24,11 +25,8 @@ public class QueueController {
     @PostMapping("/tracks")
     public ResponseEntity<TrackResponse> addTrack(
             @PathVariable(name = "roomId") UUID roomId,
-            @Valid @RequestBody AddTrackRequest request
-            /*@AuthenticationPrincipal Jwt jwt*/) {
-        //UUID userId = UUID.fromString(jwt.getSubject());
-        UUID userId = UUID.randomUUID();
-        TrackResponse track = queueService.addTrack(roomId, request, userId);
+            @Valid @RequestBody AddTrackRequest request) {
+        TrackResponse track = queueService.addTrack(roomId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(track);
     }
 

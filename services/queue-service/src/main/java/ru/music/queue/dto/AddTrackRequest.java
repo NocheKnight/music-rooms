@@ -4,6 +4,8 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 import ru.music.queue.model.TrackSource;
 
+import java.util.UUID;
+
 @Data
 public class AddTrackRequest {
 
@@ -30,4 +32,7 @@ public class AddTrackRequest {
     // Позиция, на которую добавить трек (null - в конец очереди)
     @Min(value = 0, message = "Position must be non-negative")
     private Integer position;
+
+    @NotNull
+    private UUID addedBy;
 }

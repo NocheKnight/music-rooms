@@ -318,6 +318,7 @@ class QueueControllerTest {
         request.setSource(TrackSource.YOUTUBE);
         request.setExternalId("ext_" + UUID.randomUUID().toString().substring(0, 8));
         request.setStreamUrl("https://example.com/stream/" + UUID.randomUUID());
+        request.setAddedBy(UUID.randomUUID());
         return request;
     }
 }
