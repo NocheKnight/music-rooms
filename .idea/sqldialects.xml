@@ -3,5 +3,6 @@
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/services/queue-service/src/main/resources/db/migration/V4__create_track_table.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/services/room-service/src/main/resources/db/migration/V4__create_track_table.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/services/room-service/src/main/resources/db/migration/V5__added_is_current_column.sql" dialect="GenericSQL" />
   </component>
 </project>

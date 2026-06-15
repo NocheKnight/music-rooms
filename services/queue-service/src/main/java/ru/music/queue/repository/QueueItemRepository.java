@@ -54,4 +54,7 @@ public interface QueueItemRepository extends JpaRepository<QueueItem, UUID> {
     @Query("SELECT q FROM QueueItem q WHERE q.roomId = :roomId AND q.position = :position")
     Optional<QueueItem> findByRoomIdAndPosition(@Param("roomId") UUID roomId,
                                                 @Param("position") int position);
+
+    @Query("SELECT q FROM QueueItem q WHERE q.roomId = :roomId AND q.isCurrent = TRUE")
+    Optional<QueueItem> findCurrentItemByRoomId(@Param("roomId") UUID roomI);
 }

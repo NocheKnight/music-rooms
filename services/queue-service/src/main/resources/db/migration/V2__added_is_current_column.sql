@@ -1,0 +1,1 @@
+ALTER TABLE queue_items ADD column is_current BOOLEAN;

@@ -42,6 +42,8 @@ public class QueueItem {
 
     private Instant streamUrlExpiresAt;
 
+    private Boolean isCurrent;
+
     @Column(nullable = false)
     private Integer position;
 
