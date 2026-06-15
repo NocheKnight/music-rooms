@@ -161,6 +161,9 @@ public class DefaultQueueService implements QueueService {
         track.setIsCurrent(false);
         nextTrack.setIsCurrent(true);
 
+        queueItemRepository.save(track);
+        queueItemRepository.save(nextTrack);
+
         publishTrackChangedEvent(roomId, nextTrack);
     }
 
@@ -173,6 +176,9 @@ public class DefaultQueueService implements QueueService {
 
         track.setIsCurrent(false);
         prevTrack.setIsCurrent(true);
+
+        queueItemRepository.save(track);
+        queueItemRepository.save(prevTrack);
 
         publishTrackChangedEvent(roomId, prevTrack);
     }
