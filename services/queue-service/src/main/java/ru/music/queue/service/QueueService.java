@@ -17,4 +17,8 @@ public interface QueueService {
     void removeTrack(UUID roomId, UUID trackId);
 
     void clearQueue(UUID roomId);
+
+    void next(UUID roomId);
+
+    void previous(UUID roomId);
 }

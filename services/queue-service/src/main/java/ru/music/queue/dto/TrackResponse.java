@@ -26,4 +26,5 @@ public class TrackResponse {
     private Integer position;
     private UUID addedBy;
     private Instant createdAt;
+    private Boolean isCurrent;
 }

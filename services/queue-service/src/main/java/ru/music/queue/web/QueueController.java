@@ -61,4 +61,16 @@ public class QueueController {
         queueService.clearQueue(roomId);
         return ResponseEntity.ok(Map.of("message", "Queue cleared successfully"));
     }
+
+    @PatchMapping("/tracks/next")
+    public ResponseEntity<Map<String, String>> next(@PathVariable(name = "roomId") UUID roomId) {
+        queueService.next(roomId);
+        return ResponseEntity.ok(Map.of("message", "Queue cleared successfully"));
+    }
+
+    @PatchMapping("/tracks/previous")
+    public ResponseEntity<Map<String, String>> previous(@PathVariable(name = "roomId") UUID roomId) {
+        queueService.previous(roomId);
+        return ResponseEntity.ok(Map.of("message", "Queue cleared successfully"));
+    }
 }

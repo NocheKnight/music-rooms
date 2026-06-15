@@ -3,9 +3,12 @@ package ru.music.queue.service.implementations;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
+import ru.music.queue.config.RabbitMqConfig;
 import ru.music.queue.dto.AddTrackRequest;
 import ru.music.queue.dto.QueueResponse;
+import ru.music.queue.dto.TrackChangedEvent;
 import ru.music.queue.dto.TrackResponse;
 import ru.music.queue.exception.TrackNotFoundException;
 import ru.music.queue.model.QueueItem;
@@ -24,6 +27,7 @@ public class DefaultQueueService implements QueueService {
 
     private final QueueItemRepository queueItemRepository;
     private final RoomValidationService roomValidationService;
+    private final RabbitTemplate rabbitTemplate;
 
     @Transactional
     public TrackResponse addTrack(UUID roomId, AddTrackRequest request) {
@@ -51,6 +55,7 @@ public class DefaultQueueService implements QueueService {
                 .streamUrl(request.getStreamUrl())
                 .position(position)
                 .addedBy(request.getAddedBy())
+                .isCurrent(position == 0)
                 .build();
 
         QueueItem saved = queueItemRepository.save(queueItem);
@@ -79,7 +84,7 @@ public class DefaultQueueService implements QueueService {
     public TrackResponse getCurrentTrack(UUID roomId) {
         roomValidationService.validateRoomExists(roomId).block();
 
-        return queueItemRepository.findFirstByRoomIdOrderByPositionAsc(roomId)
+        return queueItemRepository.findCurrentItemByRoomId(roomId)
                 .map(this::mapToTrackResponse)
                 .orElseThrow(() -> new TrackNotFoundException("No tracks in queue for room " + roomId));
     }
@@ -144,6 +149,46 @@ public class DefaultQueueService implements QueueService {
         queueItemRepository.deleteAll(tracks);
 
         log.info("Queue for room {} cleared. Removed {} tracks", roomId, tracks.size());
+    }
+
+
+    public void next(UUID roomId) {
+        QueueItem track = queueItemRepository.findCurrentItemByRoomId(roomId)
+                .orElseThrow(() -> new TrackNotFoundException("Something went wrong"));
+        QueueItem nextTrack = queueItemRepository.findByRoomIdAndPosition(roomId, track.getPosition() + 1)
+                .orElseThrow(() -> new TrackNotFoundException("Something went wrong"));
+
+        track.setIsCurrent(false);
+        nextTrack.setIsCurrent(true);
+
+        publishTrackChangedEvent(roomId, nextTrack);
+    }
+
+    @Override
+    public void previous(UUID roomId) {
+        QueueItem track = queueItemRepository.findCurrentItemByRoomId(roomId)
+                .orElseThrow(() -> new TrackNotFoundException("Something went wrong"));
+        QueueItem prevTrack = queueItemRepository.findByRoomIdAndPosition(roomId, track.getPosition() - 1)
+                .orElseThrow(() -> new TrackNotFoundException("Something went wrong"));
+
+        track.setIsCurrent(false);
+        prevTrack.setIsCurrent(true);
+
+        publishTrackChangedEvent(roomId, prevTrack);
+    }
+
+    private void publishTrackChangedEvent(UUID roomId, QueueItem track) {
+        TrackResponse trackInfo = mapToTrackResponse(track);
+        TrackChangedEvent event = new TrackChangedEvent(trackInfo);
+
+        String routingKey = "room." + roomId + ".track.changed";
+
+        rabbitTemplate.convertAndSend(
+                RabbitMqConfig.TRACK_CHANGED_EXCHANGE,
+                routingKey,
+                event
+        );
+        log.info("Published TrackChangedEvent for room {}", roomId);
     }
 
     private TrackResponse mapToTrackResponse(QueueItem item) {

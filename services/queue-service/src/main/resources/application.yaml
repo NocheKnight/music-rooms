@@ -23,6 +23,16 @@ spring:
     password: music_pass
     driver-class-name: org.postgresql.Driver
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    publisher-confirm-type: correlated
+    listener:
+      simple:
+        acknowledge-mode: manual
+
 #  security:
 #    oauth2:
 #      resourceserver:
