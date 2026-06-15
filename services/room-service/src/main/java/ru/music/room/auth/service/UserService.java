@@ -17,6 +17,29 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+    // Новый метод: получить или создать пользователя
+    @Transactional
+    public User getOrCreateUser(UUID userId, String username, String email) {
+        // Сначала пытаемся найти
+        Optional<User> existing = userRepository.findById(userId);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+        // Если не нашли, создаём нового
+        User newUser = new User();
+        newUser.setId(userId);
+        newUser.setUsername(username != null && !username.isBlank() ? username : userId.toString());
+        newUser.setEmail(email != null && !email.isBlank() ? email : userId.toString() + "@temp.local");
+
+        try {
+            return userRepository.save(newUser);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            // В параллельном потоке уже вставили такого пользователя – просто находим и возвращаем
+            return userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("Failed to retrieve user after duplicate exception", e));
+        }
+    }
+
     /**
      * Найти пользователя по ID.
      */

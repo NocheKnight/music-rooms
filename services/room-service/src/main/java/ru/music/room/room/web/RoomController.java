@@ -1,6 +1,7 @@
 package ru.music.room.room.web;
 
 import org.springframework.security.core.context.SecurityContextHolder;
+import ru.music.room.auth.model.User;
 import ru.music.room.room.dto.CreateRoomRequest;
 import ru.music.room.room.dto.JoinRoomRequest;
 import ru.music.room.room.dto.RoomResponse;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+import static reactor.netty.http.HttpConnectionLiveness.log;
+
 @RestController
 @RequestMapping("/api/rooms")
 @RequiredArgsConstructor
@@ -24,11 +27,11 @@ public class RoomController {
     @PostMapping
     public ResponseEntity<RoomResponse> createRoom(
             @Valid @RequestBody CreateRoomRequest request,
-            @AuthenticationPrincipal String userIdStr   // теперь principal - String
+            @AuthenticationPrincipal User currentUser   // теперь principal - String
     ) {
-        UUID userId = UUID.fromString(userIdStr);
+        log.info("Creating room for user: id={}, name={}", currentUser.getId(), currentUser.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(roomService.createRoom(request, userId));
+                .body(roomService.createRoom(request, currentUser));
     }
 
     @PostMapping("/join")

@@ -12,12 +12,19 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import ru.music.room.auth.service.UserService;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Configuration
 public class SecurityConfig {
+
+    private final UserService userService;
+
+    public SecurityConfig(UserService userService) {
+        this.userService = userService;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -41,7 +48,7 @@ public class SecurityConfig {
                 )
 //                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {})); // Настройка JWT
                 .anonymous(AnonymousConfigurer::disable)
-                .addFilterBefore(new UserIdAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new UserIdAuthenticationFilter(userService), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

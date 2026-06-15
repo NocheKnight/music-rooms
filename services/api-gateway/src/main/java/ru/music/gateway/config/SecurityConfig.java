@@ -27,28 +27,30 @@ public class SecurityConfig {
                                 "/swagger-ui/**",       // Все статические ресурсы UI
                                 "/webjars/**"           // Внутренние библиотеки UI
                         ).permitAll()
+                        // 🔥 ВАЖНО: разрешаем доступ к OpenAPI документам всех проксируемых сервисов
+                        .pathMatchers("/api/*/v3/api-docs/**").permitAll()
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}))  // исправлено: добавили пустой Customizer
                 .build();
     }
 
-    @Bean
-    public WebFilter userIdHeaderFilter() {
-        return (exchange, chain) -> exchange.getPrincipal()
-                .filter(principal -> principal instanceof org.springframework.security.oauth2.jwt.Jwt)
-                .cast(org.springframework.security.oauth2.jwt.Jwt.class)
-                .flatMap(jwt -> {
-                    final String userId = jwt.getClaimAsString("user_id");
-                    final String finalUserId = (userId != null) ? userId : jwt.getSubject(); // effectively final
-
-                    System.out.println("=== Gateway: extracted userId = " + userId); // лог
-
-                    ServerWebExchange mutatedExchange = exchange.mutate()
-                            .request(builder -> builder.header("X-User-Id", finalUserId))
-                            .build();
-                    return chain.filter(mutatedExchange);
-                })
-                .switchIfEmpty(chain.filter(exchange));
-    }
+//    @Bean
+//    public WebFilter userIdHeaderFilter() {
+//        return (exchange, chain) -> exchange.getPrincipal()
+//                .filter(principal -> principal instanceof org.springframework.security.oauth2.jwt.Jwt)
+//                .cast(org.springframework.security.oauth2.jwt.Jwt.class)
+//                .flatMap(jwt -> {
+//                    final String userId = jwt.getClaimAsString("user_id");
+//                    final String finalUserId = (userId != null) ? userId : jwt.getSubject(); // effectively final
+//
+//                    System.out.println("=== Gateway: extracted userId = " + userId); // лог
+//
+//                    ServerWebExchange mutatedExchange = exchange.mutate()
+//                            .request(builder -> builder.header("X-User-Id", finalUserId))
+//                            .build();
+//                    return chain.filter(mutatedExchange);
+//                })
+//                .switchIfEmpty(chain.filter(exchange));
+//    }
 }

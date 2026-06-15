@@ -18,7 +18,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/music_queues
+    url: jdbc:postgresql://localhost:5432/music_rooms
     username: music_user
     password: music_pass
     driver-class-name: org.postgresql.Driver
@@ -41,8 +41,8 @@ logging:
     org.springframework.jdbc: DEBUG
 
 springdoc:
-  api-docs:
-    path: /api-docs
+#  api-docs:
+#    path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
     operations-sorter: method

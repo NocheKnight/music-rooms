@@ -37,16 +37,13 @@ public class RoomService {
      * Создание новой комнаты.
      */
     @Transactional
-    public RoomResponse createRoom(CreateRoomRequest request, UUID userId) {
-        log.debug("Creating room '{}' for user {}", request.name(), userId);
-
-        User creator = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+    public RoomResponse createRoom(CreateRoomRequest request, User creator) {
+        log.debug("Creating room '{}' for user {}", request.name(), creator.getId());
 
         Room room = new Room();
         room.setName(request.name());
         room.setInviteCode(generateUniqueInviteCode());
-        room.setCreatedBy(userId);
+        room.setCreatedBy(creator.getId());
         room.getParticipants().add(creator);
         room.setActive(true);
 

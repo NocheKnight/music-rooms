@@ -12,7 +12,7 @@ import java.io.InputStream;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/audio")
+@RequestMapping("/api/media/audio")
 public class AudioController {
     private final AudioStreamService audioStreamService;
 
