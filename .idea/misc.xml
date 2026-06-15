@@ -7,7 +7,8 @@
         <option value="$PROJECT_DIR$/pom.xml" />
         <option value="$PROJECT_DIR$/services/room-service/RoomService/pom.xml" />
         <option value="$PROJECT_DIR$/services/queue-service/pom.xml" />
-        <option value="$PROJECT_DIR$/media-service/pom.xml" />
+        <option value="$PROJECT_DIR$/services/media-service/pom.xml" />
+        <option value="$PROJECT_DIR$/services/api-gateway/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
