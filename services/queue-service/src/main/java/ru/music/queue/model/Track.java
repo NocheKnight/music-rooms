@@ -7,24 +7,21 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "queue_items")
+@Table(name = "tracks")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class QueueItem {
+public class Track {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
-    private UUID roomId;
-
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, length = 200)
     private String name;
 
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, length = 200)
     private String artist;
 
     @Column(nullable = false)
@@ -34,18 +31,10 @@ public class QueueItem {
     @Column(nullable = false, length = 20)
     private TrackSource source;
 
-    @Column(nullable = false, length = 500)
-    private String externalId;
-
-    @Column(length = 2048)
+    @Column(length = 1024)
     private String streamUrl;
 
     private Instant streamUrlExpiresAt;
-
-    private Boolean isCurrent;
-
-    @Column(nullable = false)
-    private Integer position;
 
     @Column(nullable = false)
     private UUID addedBy;

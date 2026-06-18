@@ -13,18 +13,14 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TrackResponse {
+public class TrackDto {
     private UUID id;
-    private UUID roomId;
     private String name;
     private String artist;
     private Integer durationSec;
     private TrackSource source;
-    private String externalId;
     private String streamUrl;
     private Instant streamUrlExpiresAt;
-    private Integer position;
     private UUID addedBy;
-    private Instant createdAt;
-    private Boolean isCurrent;
+    private Integer position;
 }
