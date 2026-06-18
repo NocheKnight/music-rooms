@@ -30,11 +30,6 @@ public class QueueController {
         return ResponseEntity.status(HttpStatus.CREATED).body(track);
     }
 
-    @GetMapping("/tracks")
-    public ResponseEntity<QueueDto> getQueue(@PathVariable(name = "roomId") UUID roomId) {
-        return ResponseEntity.ok(queueService.getQueue(roomId));
-    }
-
     @GetMapping("/tracks/current")
     public ResponseEntity<TrackDto> getCurrentTrack(@PathVariable(name = "roomId") UUID roomId) {
         return ResponseEntity.ok(queueService.getCurrentTrack(roomId));
@@ -57,12 +52,6 @@ public class QueueController {
         return ResponseEntity.ok(Map.of("message", "Track removed successfully"));
     }
 
-    @DeleteMapping("/tracks")
-    public ResponseEntity<Map<String, String>> clearQueue(@PathVariable(name = "roomId") UUID roomId) {
-        queueService.clearQueue(roomId);
-        return ResponseEntity.ok(Map.of("message", "Queue cleared successfully"));
-    }
-
     @PatchMapping("/tracks/next")
     public ResponseEntity<Map<String, String>> next(@PathVariable(name = "roomId") UUID roomId) {
         queueService.next(roomId);
@@ -72,6 +61,23 @@ public class QueueController {
     @PatchMapping("/tracks/previous")
     public ResponseEntity<Map<String, String>> previous(@PathVariable(name = "roomId") UUID roomId) {
         queueService.previous(roomId);
+        return ResponseEntity.ok(Map.of("message", "Queue cleared successfully"));
+    }
+
+    @PostMapping
+    public ResponseEntity<QueueDto> createQueue(@PathVariable(name = "roomId") UUID roomId) {
+        QueueDto queue = queueService.createQueue(roomId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(queue);
+    }
+
+    @GetMapping
+    public ResponseEntity<QueueDto> getQueue(@PathVariable(name = "roomId") UUID roomId) {
+        return ResponseEntity.ok(queueService.getQueue(roomId));
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Map<String, String>> clearQueue(@PathVariable(name = "roomId") UUID roomId) {
+        queueService.clearQueue(roomId);
         return ResponseEntity.ok(Map.of("message", "Queue cleared successfully"));
     }
 }
