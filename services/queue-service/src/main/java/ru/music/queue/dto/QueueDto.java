@@ -12,9 +12,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class QueueResponse {
+public class QueueDto {
+    private UUID id;
     private UUID roomId;
-    private int totalTracks;
+    private List<TrackDto> tracks;
     private Integer currentTrackPosition;
-    private List<TrackResponse> tracks;
 }

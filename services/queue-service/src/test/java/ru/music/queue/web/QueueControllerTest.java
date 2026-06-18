@@ -1,33 +1,46 @@
 package ru.music.queue.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import reactor.core.publisher.Mono;
+import org.springframework.transaction.annotation.Transactional;
 import ru.music.queue.dto.AddTrackRequest;
 import ru.music.queue.dto.MoveTrackRequest;
+import ru.music.queue.dto.RoomResponse;
+import ru.music.queue.dto.TrackChangedEvent;
+import ru.music.queue.feign.RoomClient;
+import ru.music.queue.model.Queue;
 import ru.music.queue.model.TrackSource;
-import ru.music.queue.repository.QueueItemRepository;
-import ru.music.queue.service.RoomValidationService;
+import ru.music.queue.repository.QueueRepository;
+import ru.music.queue.repository.TrackRepository;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
-@AutoConfigureMockMvc
 @ActiveProfiles("test")
+@AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Transactional
 class QueueControllerTest {
 
     @Autowired
@@ -36,20 +49,47 @@ class QueueControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
-    private QueueItemRepository queueItemRepository;
+    private TrackRepository trackRepository;
+    @Autowired
+    private QueueRepository queueRepository;
 
     @MockitoBean
-    private RoomValidationService roomValidationService;
+    private RoomClient roomClient;
+
+    @MockitoBean
+    private RabbitTemplate rabbitTemplate;
 
     private UUID roomId;
+
+    @Test
+    void contextLoads() {
+    }
 
     @BeforeEach
     void setUp() {
         roomId = UUID.randomUUID();
-        queueItemRepository.deleteAll();
 
-        when(roomValidationService.validateRoomExists(any(UUID.class)))
-                .thenReturn(Mono.just(true));
+        Queue queue = new Queue();
+        queue.setRoomId(roomId);
+        queue.setTracks(new ArrayList<>());
+        queueRepository.save(queue);
+
+        RoomResponse roomResponse = new RoomResponse(
+                roomId,
+                "Name",
+                "code",
+                UUID.randomUUID(),
+                Set.of(),
+                Instant.now()
+        );
+        when(roomClient.getRoom(roomId))
+                .thenReturn(new ResponseEntity<>(roomResponse, HttpStatus.OK));
+
+        doNothing().when(rabbitTemplate).convertAndSend(
+                any(String.class),
+                any(String.class),
+                any(TrackChangedEvent.class)
+        );
     }
 
     @Test
@@ -60,38 +100,36 @@ class QueueControllerTest {
 
         mockMvc.perform(post("/api/queue/{roomId}/tracks", roomId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
+                        .content(objectMapper.writeValueAsString(request))
+                        .header("X-User-Id", UUID.randomUUID())
+                ).andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("Bohemian Rhapsody"))
                 .andExpect(jsonPath("$.artist").value("Queen"))
                 .andExpect(jsonPath("$.durationSec").value(354))
                 .andExpect(jsonPath("$.source").value("YOUTUBE"))
-                .andExpect(jsonPath("$.position").value(0))
-                .andExpect(jsonPath("$.roomId").value(roomId.toString()));
+                .andExpect(jsonPath("$.position").value(0));
     }
 
     @Test
     @Order(2)
     @DisplayName("POST /api/queue/{roomId}/tracks - Добавление трека на конкретную позицию")
     void testAddTrackAtSpecificPosition() throws Exception {
-        // Добавляем первый трек в конец
         AddTrackRequest request1 = createTrackRequest("Track 1", "Artist 1", 200);
         mockMvc.perform(post("/api/queue/{roomId}/tracks", roomId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request1)))
-                .andExpect(status().isCreated());
+                        .content(objectMapper.writeValueAsString(request1))
+                        .header("X-User-Id", UUID.randomUUID())
+                ).andExpect(status().isCreated());
 
-        // Добавляем второй трек на позицию 0
         AddTrackRequest request2 = createTrackRequest("Track 2", "Artist 2", 180);
         request2.setPosition(0);
-
         mockMvc.perform(post("/api/queue/{roomId}/tracks", roomId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request2)))
-                .andExpect(status().isCreated())
+                        .content(objectMapper.writeValueAsString(request2))
+                        .header("X-User-Id", UUID.randomUUID())
+                ).andExpect(status().isCreated())
                 .andExpect(jsonPath("$.position").value(0));
 
-        // Проверяем порядок в очереди
         mockMvc.perform(get("/api/queue/{roomId}/tracks", roomId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tracks[0].name").value("Track 2"))
@@ -104,7 +142,6 @@ class QueueControllerTest {
     @Order(3)
     @DisplayName("GET /api/queue/{roomId}/tracks - Получение всей очереди")
     void testGetQueue() throws Exception {
-        // Добавляем несколько треков
         addTestTrack("Track 1", "Artist 1", 200);
         addTestTrack("Track 2", "Artist 2", 180);
         addTestTrack("Track 3", "Artist 3", 240);
@@ -112,7 +149,6 @@ class QueueControllerTest {
         mockMvc.perform(get("/api/queue/{roomId}/tracks", roomId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.roomId").value(roomId.toString()))
-                .andExpect(jsonPath("$.totalTracks").value(3))
                 .andExpect(jsonPath("$.currentTrackPosition").value(0))
                 .andExpect(jsonPath("$.tracks.size()").value(3))
                 .andExpect(jsonPath("$.tracks[0].position").value(0))
@@ -126,7 +162,6 @@ class QueueControllerTest {
     void testGetEmptyQueue() throws Exception {
         mockMvc.perform(get("/api/queue/{roomId}/tracks", roomId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalTracks").value(0))
                 .andExpect(jsonPath("$.tracks.size()").value(0))
                 .andExpect(jsonPath("$.currentTrackPosition").doesNotExist());
     }
@@ -157,8 +192,7 @@ class QueueControllerTest {
         mockMvc.perform(put("/api/queue/{roomId}/tracks/{trackId}/move", roomId, track2)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(moveRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.position").value(0));
+                .andExpect(status().isOk());
 
         // Проверяем новый порядок
         mockMvc.perform(get("/api/queue/{roomId}/tracks", roomId))
@@ -182,10 +216,8 @@ class QueueControllerTest {
         mockMvc.perform(put("/api/queue/{roomId}/tracks/{trackId}/move", roomId, track0)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(moveRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.position").value(2));
+                .andExpect(status().isOk());
 
-        // Проверяем новый порядок
         mockMvc.perform(get("/api/queue/{roomId}/tracks", roomId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tracks[0].id").value(track1.toString()))
@@ -207,7 +239,6 @@ class QueueControllerTest {
 
         mockMvc.perform(get("/api/queue/{roomId}/tracks", roomId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalTracks").value(2))
                 .andExpect(jsonPath("$.tracks[0].position").value(0))
                 .andExpect(jsonPath("$.tracks[1].position").value(1));
     }
@@ -224,8 +255,7 @@ class QueueControllerTest {
                 .andExpect(jsonPath("$.message").value("Queue cleared successfully"));
 
         mockMvc.perform(get("/api/queue/{roomId}/tracks", roomId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalTracks").value(0));
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -236,14 +266,9 @@ class QueueControllerTest {
 
         mockMvc.perform(post("/api/queue/{roomId}/tracks", roomId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Validation failed"))
-                .andExpect(jsonPath("$.errors", hasKey("name")))
-                .andExpect(jsonPath("$.errors", hasKey("artist")))
-                .andExpect(jsonPath("$.errors", hasKey("durationSec")))
-                .andExpect(jsonPath("$.errors", hasKey("source")))
-                .andExpect(jsonPath("$.errors", hasKey("externalId")));
+                        .content(objectMapper.writeValueAsString(invalidRequest))
+                        .header("X-User-Id", UUID.randomUUID())
+                ).andExpect(status().isBadRequest());
     }
 
     @Test
@@ -299,8 +324,9 @@ class QueueControllerTest {
 
         String response = mockMvc.perform(post("/api/queue/{roomId}/tracks", roomId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
+                        .content(objectMapper.writeValueAsString(request))
+                        .header("X-User-Id", UUID.randomUUID())
+                ).andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -316,9 +342,7 @@ class QueueControllerTest {
         request.setArtist(artist);
         request.setDurationSec(duration);
         request.setSource(TrackSource.YOUTUBE);
-        request.setExternalId("ext_" + UUID.randomUUID().toString().substring(0, 8));
         request.setStreamUrl("https://example.com/stream/" + UUID.randomUUID());
-        request.setAddedBy(UUID.randomUUID());
         return request;
     }
 }

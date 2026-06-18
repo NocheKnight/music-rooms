@@ -1,24 +1,26 @@
 package ru.music.queue.service;
 
 import ru.music.queue.dto.AddTrackRequest;
-import ru.music.queue.dto.QueueResponse;
-import ru.music.queue.dto.TrackResponse;
+import ru.music.queue.dto.QueueDto;
+import ru.music.queue.dto.TrackDto;
+import ru.music.queue.model.Track;
+
 import java.util.UUID;
 
 public interface QueueService {
-    TrackResponse addTrack(UUID roomId, AddTrackRequest request);
+    TrackDto addTrack(UUID roomId, AddTrackRequest request, UUID userId);
 
-    QueueResponse getQueue(UUID roomId);
+    QueueDto getQueue(UUID roomId);
 
-    TrackResponse getCurrentTrack(UUID roomId);
+    TrackDto getCurrentTrack(UUID roomId);
 
-    TrackResponse moveTrack(UUID roomId, UUID trackId, int newPosition);
+    void moveTrack(UUID roomId, UUID trackId, int newPosition);
 
     void removeTrack(UUID roomId, UUID trackId);
 
     void clearQueue(UUID roomId);
 
-    void next(UUID roomId);
+    TrackDto next(UUID roomId);
 
-    void previous(UUID roomId);
+    TrackDto previous(UUID roomId);
 }
