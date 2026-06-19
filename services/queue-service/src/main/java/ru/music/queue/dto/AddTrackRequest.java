@@ -24,15 +24,9 @@ public class AddTrackRequest {
     @NotNull(message = "Source is required")
     private TrackSource source;
 
-    @NotBlank(message = "External ID is required")
-    private String externalId;
-
     private String streamUrl;
 
     // Позиция, на которую добавить трек (null - в конец очереди)
     @Min(value = 0, message = "Position must be non-negative")
     private Integer position;
-
-    @NotNull
-    private UUID addedBy;
 }

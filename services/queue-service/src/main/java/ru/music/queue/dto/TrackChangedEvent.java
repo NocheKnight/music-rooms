@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class TrackChangedEvent {
-    private TrackResponse currentTrack;
+    private TrackDto currentTrack;
 }

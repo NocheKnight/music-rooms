@@ -8,6 +8,7 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
+    repair-on-migrate: true
     schemas: public
 
   jpa:
@@ -18,7 +19,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/music_rooms
+    url: jdbc:postgresql://localhost:5432/music_rooms_queues
     username: music_user
     password: music_pass
     driver-class-name: org.postgresql.Driver
@@ -32,13 +33,6 @@ spring:
     listener:
       simple:
         acknowledge-mode: manual
-
-#  security:
-#    oauth2:
-#      resourceserver:
-#       jwt:
-#          issuer-uri: http://localhost:8081/realms/music-realm
-#          jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
 
 services:
   room-service:

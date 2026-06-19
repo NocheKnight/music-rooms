@@ -44,7 +44,7 @@ public class RoomController {
     }
 
     @GetMapping("/{roomId}")
-    public ResponseEntity<RoomResponse> getRoom(@PathVariable UUID roomId) {
+    public ResponseEntity<RoomResponse> getRoom(@PathVariable(name = "roomId") UUID roomId) {
         return ResponseEntity.ok(roomService.getRoom(roomId));
     }
 }
