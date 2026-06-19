@@ -1,6 +1,52 @@
-version: '3.8'
-
 services:
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  room-service:
+    build:
+      context: .
+      dockerfile: services/room-service/Dockerfile
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  queue-service:
+    build:
+      context: .
+      dockerfile: services/queue-service/Dockerfile
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  media-service:
+    build:
+      context: .
+      dockerfile: services/media-service/Dockerfile
+    ports:
+      - "8084:8084"
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   # PostgreSQL для хранения данных
   postgres:
     image: postgres:16-alpine
@@ -10,9 +56,10 @@ services:
       POSTGRES_USER: music_user
       POSTGRES_PASSWORD: music_pass
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U music_user -d music_rooms"]
       interval: 5s
