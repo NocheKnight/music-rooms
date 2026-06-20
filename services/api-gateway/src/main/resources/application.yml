@@ -54,7 +54,7 @@ spring:
                 - RewritePath=/api/room-service/(?<segment>.*), /$\{segment}
 
             - id: queue-service-api
-              uri: http://queue-service:8083
+              uri: http://localhost:8083
               predicates:
                 - Path=/api/queue/**
               filters:
@@ -63,7 +63,7 @@ spring:
                     name: Authorization
 
             - id: queue-service-swagger
-              uri: http://queue-service:8083
+              uri: http://localhost:8083
               predicates:
                 - Path=/api/queue-service/v3/api-docs
               filters:

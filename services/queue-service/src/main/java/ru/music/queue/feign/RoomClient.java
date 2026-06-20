@@ -13,6 +13,6 @@ import java.util.UUID;
         url = "${services.room-service.url}"
 )
 public interface RoomClient {
-    @GetMapping("/{roomId}")
+    @GetMapping("api/rooms/{roomId}")
     ResponseEntity<RoomResponse> getRoom(@PathVariable(name = "roomId") UUID roomId);
 }
