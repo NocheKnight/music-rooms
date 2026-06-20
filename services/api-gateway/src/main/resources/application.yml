@@ -19,6 +19,14 @@ springdoc:
       # Включаем генерацию OpenAPI-спецификации для самого Gateway
       enabled: true
 
+keycloak:
+  url: http://keycloak:8080
+  realm: music-realm
+  client-id: music-client
+  registration:
+    client-id: music-registration-client
+    client-secret: music-registration-secret
+
 spring:
   application:
     name: api-gateway
@@ -140,8 +148,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8081/realms/music-realm
-          jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
+          jwk-set-uri: http://keycloak:8080/realms/music-realm/protocol/openid-connect/certs
 
   # Виртуальные потоки (опционально)
   threads:

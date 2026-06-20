@@ -36,7 +36,7 @@ spring:
 
 services:
   room-service:
-    url: http://localhost:8082
+    url: http://room-service:8082
 
 logging:
   level:

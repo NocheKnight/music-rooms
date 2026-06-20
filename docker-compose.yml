@@ -1,5 +1,6 @@
 services:
   api-gateway:
+    container_name: api-gateway
     build:
       context: .
       dockerfile: services/api-gateway/Dockerfile
@@ -12,6 +13,7 @@ services:
         condition: service_healthy
 
   room-service:
+    container_name: room-service
     build:
       context: .
       dockerfile: services/room-service/Dockerfile
@@ -26,6 +28,7 @@ services:
         condition: service_healthy
 
   queue-service:
+    container_name: queue-service
     build:
       context: .
       dockerfile: services/queue-service/Dockerfile
@@ -38,6 +41,7 @@ services:
         condition: service_healthy
 
   media-service:
+    container_name: media-service
     build:
       context: .
       dockerfile: services/media-service/Dockerfile
@@ -124,7 +128,7 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:25.0.6
     container_name: music_keycloak
-    command: start-dev --http-port=8080
+    command: start-dev --http-port=8080 --import-realm
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
@@ -134,6 +138,8 @@ services:
       KC_HTTP_PORT: 8080
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
     ports:
       - "8081:8080"
     depends_on:

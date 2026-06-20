@@ -22,16 +22,16 @@ public class SecurityConfig {
                         .pathMatchers("/actuator/health", "/ws/**").permitAll()
                         .pathMatchers(
                                 "/v3/api-docs",
-                                "/v3/api-docs/**",      // JSON-спецификация API
-                                "/swagger-ui.html",     // Точка входа для редиректа
-                                "/swagger-ui/**",       // Все статические ресурсы UI
-                                "/webjars/**"           // Внутренние библиотеки UI
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/webjars/**",
+                                "api/auth/**"
                         ).permitAll()
-                        // 🔥 ВАЖНО: разрешаем доступ к OpenAPI документам всех проксируемых сервисов
                         .pathMatchers("/api/*/v3/api-docs/**").permitAll()
                         .anyExchange().authenticated()
                 )
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}))  // исправлено: добавили пустой Customizer
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}))
                 .build();
     }
 
