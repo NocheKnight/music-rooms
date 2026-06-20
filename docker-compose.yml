@@ -27,6 +27,24 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  webhook-handler-service:
+    container_name: webhook-handler-service
+    build:
+      context: .
+      dockerfile: services/webhook-handler-service/Dockerfile
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./logs:/app/logs
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      room-service:
+        condition: service_started
+
   queue-service:
     container_name: queue-service
     build:
