@@ -11,30 +11,32 @@ spring:
       ddl-auto: none
   websocket:
     relay:
-      host: localhost
+      host: rabbitmq
       port: 61613
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/music_rooms
+    url: jdbc:postgresql://postgres:5432/music_rooms
     username: music_user
     password: music_pass
 
   redis:
-    host: localhost
+    host: redis
     port: 6379
+
   rabbitmq:
-    host: localhost
+    host: rabbitmq
     port: 5672
     username: guest
     password: guest
+
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8081/realms/music-realm
+          issuer-uri: http://keycloak:8080/realms/music-realm
           jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
 
-  logging:
-    level:
-      org.flywaydb: DEBUG
-      org.springframework.jdbc: DEBUG
+logging:
+  level:
+    org.flywaydb: DEBUG
+    org.springframework.jdbc: DEBUG

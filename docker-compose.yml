@@ -130,7 +130,6 @@ services:
     image: quay.io/keycloak/keycloak:25.0.6
     container_name: music_keycloak
     user: root
-    command: start-dev --http-port=8080
     command: start-dev --http-port=8080 --import-realm
     environment:
       # База данных
@@ -159,14 +158,13 @@ services:
       KC_SPI_EVENTS_LISTENER: rabbitmq
 
     volumes:
+      - ./providers:/opt/keycloak/providers   # 👈 МОНТИРУЕМ ПАПКУ С ПЛАГИНАМИ
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
     ports:
       - "8081:8080"
     depends_on:
       - keycloak-db
       - rabbitmq  # 👈 ЯВНАЯ ЗАВИСИМОСТЬ ОТ RABBITMQ
-    volumes:
-      - ./providers:/opt/keycloak/providers  # 👈 МОНТИРУЕМ ПАПКУ С ПЛАГИНАМИ
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
       interval: 10s
