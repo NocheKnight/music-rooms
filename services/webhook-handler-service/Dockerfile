@@ -18,12 +18,12 @@ COPY services/webhook-handler-service/pom.xml services/webhook-handler-service/p
 #COPY libs/common-dto/src libs/common-dto/src
 #COPY libs/common-security/src libs/common-security/src
 
-COPY services/api-gateway/src services/api-gateway/src
+COPY services/webhook-handler-service/src services/webhook-handler-service/src
 
-RUN mvn package -DskipTests -pl services/api-gateway -am
-
+RUN mvn package -DskipTests -pl services/webhook-handler-service -am
 
 FROM eclipse-temurin:25-jre
 WORKDIR /app
-COPY --from=build /app/services/api-gateway/target/*.jar app.jar
+RUN mkdir -p /app/logs
+COPY --from=build /app/services/webhook-handler-service/target/*.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]

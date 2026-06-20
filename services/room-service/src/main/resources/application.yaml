@@ -22,11 +22,13 @@ spring:
   redis:
     host: localhost
     port: 6379
+
   rabbitmq:
     host: localhost
     port: 5672
     username: guest
     password: guest
+
   security:
     oauth2:
       resourceserver:
@@ -34,7 +36,13 @@ spring:
           issuer-uri: http://localhost:8081/realms/music-realm
           jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
 
-  logging:
-    level:
-      org.flywaydb: DEBUG
-      org.springframework.jdbc: DEBUG
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+logging:
+  level:
+    org.flywaydb: DEBUG
+    org.springframework.jdbc: DEBUG

@@ -19,29 +19,28 @@ springdoc:
       # Включаем генерацию OpenAPI-спецификации для самого Gateway
       enabled: true
 
+keycloak:
+  url: http://localhost:8081
+  realm: music-realm
+  client-id: music-client
+  registration:
+    client-id: music-registration-client
+    client-secret: music-registration-secret
+
 spring:
   application:
     name: api-gateway
 
   cloud:
     gateway:
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOrigins: "*"
-            allowedMethods: "*"
-            allowedHeaders: "*"
-            allowCredentials: true
-
       server:
         webflux:
           routes:
             - id: room-service
-              uri: http://localhost:8082   # room-service будем запускать на 8082
+              uri: http://localhost:8082
               predicates:
                 - Path=/api/rooms/**
               filters:
-                # Убираем JWT-валидацию, так как это делает Gateway
                 - name: RemoveRequestHeader
                   args:
                     name: Authorization
@@ -84,15 +83,6 @@ spring:
                 - Path=/api/media-service/v3/api-docs
               filters:
                 - RewritePath=/api/media-service/(?<segment>.*), /$\{segment}
-
-            - id: websocket-server
-              uri: http://localhost:8085
-              predicates:
-                - Path=/api/ws/**
-              filters:
-                - name: RemoveRequestHeader
-                  args:
-                    name: Authorization
 #  cloud:
 #    gateway:
 #      routes:
@@ -140,8 +130,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8081/realms/music-realm
-          jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
+          jwk-set-uri: http://localhost:8081/realms/music-realm/protocol/openid-connect/certs
 
   # Виртуальные потоки (опционально)
   threads:

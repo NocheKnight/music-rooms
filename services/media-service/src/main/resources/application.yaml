@@ -11,13 +11,13 @@ spring:
       ddl-auto: none
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/music_media
-    username: postgres
-    password: 1111
+    url: jdbc:postgresql://postgres:5432/music_rooms
+    username: music_user
+    password: music_pass
 
   application:
     name: media-service
 
 services:
   queue-service:
-    url: http://localhost:8083
+    url: http://queue-service:8083

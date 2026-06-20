@@ -19,13 +19,13 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/music_rooms
+    url: jdbc:postgresql://postgres:5432/music_rooms
     username: music_user
     password: music_pass
     driver-class-name: org.postgresql.Driver
 
   rabbitmq:
-    host: localhost
+    host: rabbitmq
     port: 5672
     username: guest
     password: guest
