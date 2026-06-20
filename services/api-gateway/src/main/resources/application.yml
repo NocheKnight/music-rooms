@@ -84,6 +84,15 @@ spring:
                 - Path=/api/media-service/v3/api-docs
               filters:
                 - RewritePath=/api/media-service/(?<segment>.*), /$\{segment}
+
+            - id: websocket-server
+              uri: http://localhost:8085
+              predicates:
+                - Path=/api/ws/**
+              filters:
+                - name: RemoveRequestHeader
+                  args:
+                    name: Authorization
 #  cloud:
 #    gateway:
 #      routes:

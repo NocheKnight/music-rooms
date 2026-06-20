@@ -87,6 +87,7 @@ services:
   rabbitmq:
     image: rabbitmq:4.0-management-alpine
     container_name: music_rabbitmq
+    command: /bin/bash -c "rabbitmq-plugins enable rabbitmq_stomp && rabbitmq-server"
     ports:
       - "5672:5672"   # AMQP
       - "15672:15672" # Management UI

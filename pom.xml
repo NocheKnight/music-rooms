@@ -20,6 +20,7 @@
     <module>services/queue-service</module>
     <module>services/api-gateway</module>
     <module>services/media-service</module>
+    <module>services/websocket-server</module>
   </modules>
 
   <properties>

@@ -15,7 +15,10 @@
     <file url="file://$PROJECT_DIR$/services/queue-service/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/services/room-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/services/room-service/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/websocket-server/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/websocket-server/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/websocket-server/src/main/java" charset="UTF-8" />
   </component>
 </project>

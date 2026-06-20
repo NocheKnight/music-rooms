@@ -1,0 +1,16 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: websocket-server
+
+  rabbitmq:
+    host: localhost
+    stomp-port: 61613
+    username: guest
+    password: guest
+    publisher-confirm-type: correlated
+    listener:
+      simple:
+        acknowledge-mode: manual
