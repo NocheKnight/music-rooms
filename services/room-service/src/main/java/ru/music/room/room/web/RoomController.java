@@ -38,7 +38,7 @@ public class RoomController {
             @AuthenticationPrincipal User currentUser
     ) {
         log.info("User {} joining room with code {}", currentUser.getId(), request.inviteCode());
-        return ResponseEntity.ok(roomService.joinRoom(request, currentUser.getId()));
+        return ResponseEntity.ok(roomService.joinRoom(request, currentUser.getKeycloakId()));
     }
 
     @GetMapping("/{roomId}")

@@ -24,7 +24,7 @@ public interface RoomMapper {
             return Set.of();
         }
         return participants.stream()
-                .map(user -> new UserResponse(user.getId(), user.getUsername()))
+                .map(user -> new UserResponse(user.getKeycloakId(), user.getUsername()))
                 .collect(Collectors.toSet());
     }
 }

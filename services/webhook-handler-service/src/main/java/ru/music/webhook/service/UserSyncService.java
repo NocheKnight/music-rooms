@@ -24,11 +24,10 @@ public class UserSyncService {
             log.warn("Cannot sync user: keycloakId is null");
             return;
         }
+        UUID keycloakUuid = UUID.fromString(keycloakId);
 
-        Optional<User> existingUser = userRepository.findByKeycloakId(keycloakId);
-
+        Optional<User> existingUser = userRepository.findByKeycloakId(keycloakUuid);
         if (existingUser.isPresent()) {
-            // Обновляем существующего пользователя
             User user = existingUser.get();
             if (username != null) user.setUsername(username);
             if (email != null) user.setEmail(email);
@@ -38,9 +37,8 @@ public class UserSyncService {
             userRepository.save(user);
             log.info("Updated user: {} ({})", username, keycloakId);
         } else {
-            // Создаём нового пользователя
             User newUser = User.builder()
-                    .keycloakId(keycloakId)
+                    .keycloakId(keycloakUuid)
                     .username(username != null ? username : "user_" + keycloakId.substring(0, 8))
                     .email(email != null ? email : "no-email@example.com")
                     .firstName(firstName)
@@ -59,10 +57,10 @@ public class UserSyncService {
             log.warn("Cannot delete user: keycloakId is null");
             return;
         }
-
-        Optional<User> user = userRepository.findByKeycloakId(keycloakId);
+        UUID keycloakUuid = UUID.fromString(keycloakId);
+        Optional<User> user = userRepository.findByKeycloakId(keycloakUuid);
         if (user.isPresent()) {
-            userRepository.softDeleteByKeycloakId(keycloakId);
+            userRepository.softDeleteByKeycloakId(keycloakUuid);
             log.info("Soft-deleted user: {}", keycloakId);
         } else {
             log.warn("User with keycloakId {} not found for deletion", keycloakId);

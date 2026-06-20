@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "users", uniqueConstraints = {
@@ -26,8 +27,8 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "keycloak_id", nullable = false, unique = true, length = 36)
-    private String keycloakId;
+    @Column(name = "keycloak_id", nullable = false, unique = true, columnDefinition = "UUID")
+    private UUID keycloakId;
 
     @NotBlank
     @Size(max = 50)
