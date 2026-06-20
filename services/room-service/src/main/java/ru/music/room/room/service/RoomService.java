@@ -2,7 +2,7 @@ package ru.music.room.room.service;
 
 import lombok.extern.slf4j.Slf4j;
 import ru.music.room.auth.model.User;
-import ru.music.room.auth.repository.UserRepository;
+import ru.music.room.auth.service.UserService;
 import ru.music.room.room.dto.CreateRoomRequest;
 import ru.music.room.room.dto.JoinRoomRequest;
 import ru.music.room.room.dto.RoomResponse;
@@ -17,25 +17,20 @@ import java.security.SecureRandom;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class RoomService {
 
     private final RoomRepository roomRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final RoomMapper roomMapper;
 
     private final ReentrantLock inviteCodeLock = new ReentrantLock();
-
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final String INVITE_CODE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private static final int INVITE_CODE_LENGTH = 8;
 
-    /**
-     * Создание новой комнаты.
-     */
     @Transactional
     public RoomResponse createRoom(CreateRoomRequest request, User creator) {
         log.debug("Creating room '{}' for user {}", request.name(), creator.getId());
@@ -43,7 +38,7 @@ public class RoomService {
         Room room = new Room();
         room.setName(request.name());
         room.setInviteCode(generateUniqueInviteCode());
-        room.setCreatedBy(creator.getId());
+        room.setCreatedBy(creator.getKeycloakId());
         room.getParticipants().add(creator);
         room.setActive(true);
 
@@ -53,15 +48,11 @@ public class RoomService {
         return roomMapper.toResponse(savedRoom);
     }
 
-    /**
-     * Подключение к комнате по invite-коду.
-     */
     @Transactional
     public RoomResponse joinRoom(JoinRoomRequest request, UUID userId) {
         log.debug("User {} joining room with invite code {}", userId, request.inviteCode());
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+        User user = userService.getUserByKeycloakId(userId);  // теперь через сервис
 
         Room room = roomRepository.findByInviteCode(request.inviteCode())
                 .orElseThrow(() -> new RuntimeException("Room not found with invite code: " + request.inviteCode()));
@@ -74,16 +65,11 @@ public class RoomService {
             room.getParticipants().add(user);
             roomRepository.save(room);
             log.info("User {} joined room {}", userId, room.getId());
-        } else {
-            log.debug("User {} is already a participant of room {}", userId, room.getId());
         }
 
         return roomMapper.toResponse(room);
     }
 
-    /**
-     * Получение информации о комнате.
-     */
     @Transactional(readOnly = true)
     public RoomResponse getRoom(UUID roomId) {
         log.debug("Fetching room {}", roomId);
@@ -92,9 +78,6 @@ public class RoomService {
         return roomMapper.toResponse(room);
     }
 
-    /**
-     * Генерация уникального invite-кода.
-     */
     private String generateUniqueInviteCode() {
         inviteCodeLock.lock();
         try {
@@ -110,9 +93,6 @@ public class RoomService {
         }
     }
 
-    /**
-     * Генерация случайной строки для invite-кода.
-     */
     private String generateRandomInviteCode() {
         StringBuilder sb = new StringBuilder(INVITE_CODE_LENGTH);
         for (int i = 0; i < INVITE_CODE_LENGTH; i++) {

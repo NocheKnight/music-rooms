@@ -109,7 +109,7 @@ services:
       retries: 5
       start_period: 30s
 
-  # Keycloak с собственной PostgreSQL (можно использовать общую, но лучше отдельную)
+  # Keycloak с собственной PostgreSQL
   keycloak-db:
     image: postgres:16-alpine
     container_name: keycloak_db
@@ -125,31 +125,55 @@ services:
       timeout: 5s
       retries: 5
 
+  # Keycloak с плагином для отправки событий в RabbitMQ
   keycloak:
     image: quay.io/keycloak/keycloak:25.0.6
     container_name: music_keycloak
+    user: root
+    command: start-dev --http-port=8080
     command: start-dev --http-port=8080 --import-realm
     environment:
+      # База данных
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
       KC_DB_USERNAME: keycloak
       KC_DB_PASSWORD: keycloak
+
+      # Хост и порт
       KC_HOSTNAME: localhost
       KC_HTTP_PORT: 8080
+
+      # Администратор
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+
+      # 👇 НАСТРОЙКА ПЛАГИНА KEYCLOAK-TO-RABBITMQ
+      KK_TO_RMQ_URL: rabbitmq
+      KK_TO_RMQ_PORT: 5672
+      KK_TO_RMQ_VHOST: /
+      KK_TO_RMQ_EXCHANGE: keycloak_events
+      KK_TO_RMQ_USERNAME: guest
+      KK_TO_RMQ_PASSWORD: guest
+
+      # 👇 ВКЛЮЧАЕМ ПЛАГИН (ВАЖНО!)
+      KC_SPI_EVENTS_LISTENER: rabbitmq
+
     volumes:
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
     ports:
       - "8081:8080"
     depends_on:
       - keycloak-db
+      - rabbitmq  # 👈 ЯВНАЯ ЗАВИСИМОСТЬ ОТ RABBITMQ
+    volumes:
+      - ./providers:/opt/keycloak/providers  # 👈 МОНТИРУЕМ ПАПКУ С ПЛАГИНАМИ
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+# Объявление томов для сохранения данных
 volumes:
   postgres_data:
   redis_data:

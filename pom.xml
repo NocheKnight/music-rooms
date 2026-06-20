@@ -20,6 +20,7 @@
     <module>services/queue-service</module>
     <module>services/api-gateway</module>
     <module>services/media-service</module>
+    <module>services/webhook-handler-service</module>
     <module>services/websocket-server</module>
   </modules>
 
@@ -79,13 +80,6 @@
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-maven-plugin</artifactId>
           <version>${spring-boot.version}</version>
-          <executions>
-            <execution>
-              <goals>
-                <goal>repackage</goal>
-              </goals>
-            </execution>
-          </executions>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
