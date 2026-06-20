@@ -22,6 +22,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
   queue-service:
     build:
@@ -92,13 +94,16 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_ENABLED_PLUGINS_FILE: /etc/rabbitmq/enabled_plugins
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+      - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   # Keycloak с собственной PostgreSQL (можно использовать общую, но лучше отдельную)
   keycloak-db:

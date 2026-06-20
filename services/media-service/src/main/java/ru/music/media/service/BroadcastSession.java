@@ -1,6 +1,5 @@
-package ru.music.media;
+package ru.music.media.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -39,6 +38,10 @@ public class BroadcastSession {
                     if (stopped.get()) break;
 
                     broadcast(buffer, bytesRead);
+                }
+
+                if (!stopped.get()) {
+                    this.onFinished.run();
                 }
             } catch (IOException e) {
                 log.error("Stream read error", e);

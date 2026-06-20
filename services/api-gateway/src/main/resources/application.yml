@@ -37,7 +37,7 @@ spring:
         webflux:
           routes:
             - id: room-service
-              uri: http://localhost:8082   # room-service будем запускать на 8082
+              uri: http://room-service:8082   # room-service будем запускать на 8082
               predicates:
                 - Path=/api/rooms/**
               filters:
@@ -47,14 +47,14 @@ spring:
                     name: Authorization
 
             - id: room-service-swagger
-              uri: http://localhost:8082
+              uri: http://room-service:8082
               predicates:
                 - Path=/api/room-service/v3/api-docs
               filters:
                 - RewritePath=/api/room-service/(?<segment>.*), /$\{segment}
 
             - id: queue-service-api
-              uri: http://localhost:8083
+              uri: http://queue-service:8083
               predicates:
                 - Path=/api/queue/**
               filters:
@@ -63,14 +63,14 @@ spring:
                     name: Authorization
 
             - id: queue-service-swagger
-              uri: http://localhost:8083
+              uri: http://queue-service:8083
               predicates:
                 - Path=/api/queue-service/v3/api-docs
               filters:
                 - RewritePath=/api/queue-service/(?<segment>.*), /$\{segment}
 
             - id: media-service-api
-              uri: http://localhost:8084
+              uri: http://media-service:8084
               predicates:
                 - Path=/api/media/**
               filters:
@@ -79,7 +79,7 @@ spring:
                     name: Authorization
 
             - id: media-service-swagger
-              uri: http://localhost:8084
+              uri: http://media-service:8084
               predicates:
                 - Path=/api/media-service/v3/api-docs
               filters:

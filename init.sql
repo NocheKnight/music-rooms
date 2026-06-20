@@ -1,1 +1,1 @@
-CREATE DATABASE music_queue;
+CREATE DATABASE music_rooms_queues;

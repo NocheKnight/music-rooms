@@ -1,10 +1,8 @@
-package ru.music.media;
+package ru.music.media.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.music.media.model.AudioStream;
-
-import java.io.InputStream;
 
 @Service
 @RequiredArgsConstructor
