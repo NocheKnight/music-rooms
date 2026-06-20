@@ -17,3 +17,7 @@ spring:
 
   application:
     name: media-service
+
+services:
+  queue-service:
+    url: http://localhost:8083

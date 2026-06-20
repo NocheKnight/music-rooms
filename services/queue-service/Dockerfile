@@ -11,6 +11,7 @@ COPY services/api-gateway/pom.xml services/api-gateway/pom.xml
 COPY services/room-service/pom.xml services/room-service/pom.xml
 COPY services/queue-service/pom.xml services/queue-service/pom.xml
 COPY services/media-service/pom.xml services/media-service/pom.xml
+COPY services/websocket-server/pom.xml services/websocket-server/pom.xml
 
 #COPY libs/common-utils/src libs/common-utils/src
 #COPY libs/common-dto/src libs/common-dto/src
