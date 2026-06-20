@@ -1,5 +1,7 @@
 package ru.music.webhook.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
@@ -31,5 +33,13 @@ public class RabbitMQConfig {
     public Binding binding(Queue webhookQueue, TopicExchange keycloakExchange) {
         // Привязываем очередь к обменнику с routing key "#" – получаем все события
         return BindingBuilder.bind(webhookQueue).to(keycloakExchange).with("#");
+    }
+
+    // 👇 ЯВНО ОБЪЯВЛЯЕМ ObjectMapper как бин
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper;
+
     }
 }

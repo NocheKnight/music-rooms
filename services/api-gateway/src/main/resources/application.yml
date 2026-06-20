@@ -37,7 +37,7 @@ spring:
         webflux:
           routes:
             - id: room-service
-              uri: http://room-service:8082   # room-service будем запускать на 8082
+              uri: http://localhost:8082   # room-service будем запускать на 8082
               predicates:
                 - Path=/api/rooms/**
               filters:
@@ -47,7 +47,7 @@ spring:
                     name: Authorization
 
             - id: room-service-swagger
-              uri: http://room-service:8082
+              uri: http://localhost:8082
               predicates:
                 - Path=/api/room-service/v3/api-docs
               filters:

@@ -143,7 +143,7 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
 
       # 👇 НАСТРОЙКА ПЛАГИНА KEYCLOAK-TO-RABBITMQ
-      KK_TO_RMQ_HOST: rabbitmq
+      KK_TO_RMQ_URL: rabbitmq
       KK_TO_RMQ_PORT: 5672
       KK_TO_RMQ_VHOST: /
       KK_TO_RMQ_EXCHANGE: keycloak_events

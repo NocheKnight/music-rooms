@@ -1,6 +1,5 @@
 package ru.music.webhook.service;
 
-import ru.music.webhook.dto.KeycloakEventDto;
 import ru.music.webhook.entity.User;
 import ru.music.webhook.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,71 +19,53 @@ public class UserSyncService {
     private final UserRepository userRepository;
 
     @Transactional
-    public void handleRegister(KeycloakEventDto event) {
-        String keycloakId = event.userId();
-        if (userRepository.existsByKeycloakId(keycloakId)) {
-            log.info("User with keycloakId {} already exists, skipping registration", keycloakId);
+    public void syncUser(String keycloakId, String username, String email, String firstName, String lastName) {
+        if (keycloakId == null) {
+            log.warn("Cannot sync user: keycloakId is null");
             return;
         }
 
-        User user = User.builder()
-                .keycloakId(keycloakId)
-                .username(event.getUsername() != null ? event.getUsername() : "user_" + keycloakId.substring(0, 8))
-                .email(event.getEmail() != null ? event.getEmail() : "no-email@example.com")
-                .firstName(event.getFirstName())
-                .lastName(event.getLastName())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+        Optional<User> existingUser = userRepository.findByKeycloakId(keycloakId);
 
-        userRepository.save(user);
-        log.info("User registered: {} ({})", user.getUsername(), keycloakId);
+        if (existingUser.isPresent()) {
+            // Обновляем существующего пользователя
+            User user = existingUser.get();
+            if (username != null) user.setUsername(username);
+            if (email != null) user.setEmail(email);
+            if (firstName != null) user.setFirstName(firstName);
+            if (lastName != null) user.setLastName(lastName);
+            user.setUpdatedAt(LocalDateTime.now());
+            userRepository.save(user);
+            log.info("Updated user: {} ({})", username, keycloakId);
+        } else {
+            // Создаём нового пользователя
+            User newUser = User.builder()
+                    .keycloakId(keycloakId)
+                    .username(username != null ? username : "user_" + keycloakId.substring(0, 8))
+                    .email(email != null ? email : "no-email@example.com")
+                    .firstName(firstName)
+                    .lastName(lastName)
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .build();
+            userRepository.save(newUser);
+            log.info("Created new user: {} ({})", username, keycloakId);
+        }
     }
 
     @Transactional
-    public void handleUpdateProfile(KeycloakEventDto event) {
-        String keycloakId = event.userId();
-        Optional<User> optionalUser = userRepository.findByKeycloakId(keycloakId);
-        if (optionalUser.isEmpty()) {
-            log.warn("User with keycloakId {} not found for update, creating new record", keycloakId);
-            // Можно создать или просто пропустить
-            handleRegister(event);
+    public void deleteUser(String keycloakId) {
+        if (keycloakId == null) {
+            log.warn("Cannot delete user: keycloakId is null");
             return;
         }
 
-        User user = optionalUser.get();
-        // Обновляем только те поля, которые пришли
-        if (event.getUsername() != null) {
-            user.setUsername(event.getUsername());
-        }
-        if (event.getEmail() != null) {
-            user.setEmail(event.getEmail());
-        }
-        if (event.getFirstName() != null) {
-            user.setFirstName(event.getFirstName());
-        }
-        if (event.getLastName() != null) {
-            user.setLastName(event.getLastName());
-        }
-        user.setUpdatedAt(LocalDateTime.now());
-
-        userRepository.save(user);
-        log.info("User profile updated: {} ({})", user.getUsername(), keycloakId);
-    }
-
-    @Transactional
-    public void handleDeleteAccount(KeycloakEventDto event) {
-        String keycloakId = event.userId();
-        if (!userRepository.existsByKeycloakId(keycloakId)) {
+        Optional<User> user = userRepository.findByKeycloakId(keycloakId);
+        if (user.isPresent()) {
+            userRepository.softDeleteByKeycloakId(keycloakId);
+            log.info("Soft-deleted user: {}", keycloakId);
+        } else {
             log.warn("User with keycloakId {} not found for deletion", keycloakId);
-            return;
         }
-        userRepository.softDeleteByKeycloakId(keycloakId);
-        log.info("User soft-deleted: {}", keycloakId);
-    }
-
-    @Transactional
-    public void handleOtherEvent(KeycloakEventDto event) {
-        log.debug("Unhandled event type: {} for user {}", event.eventType(), event.userId());
     }
 }

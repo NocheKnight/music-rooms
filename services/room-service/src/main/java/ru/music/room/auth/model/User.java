@@ -16,14 +16,18 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 public class User {
-    @Id
-//    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
 
-    @Column(unique = true, nullable = false)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "keycloak_id", nullable = false, unique = true)
+    private UUID keycloakId;
+
+    @Column(nullable = false)
     private String username;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String email;
 
     @CreationTimestamp
