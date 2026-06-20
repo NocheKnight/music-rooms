@@ -1,4 +1,4 @@
-package ru.music.media;
+package ru.music.media.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -6,6 +6,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import ru.music.media.dto.PlayRequest;
+import ru.music.media.dto.RoomRequest;
+import ru.music.media.service.BroadcastSession;
+import ru.music.media.service.RoomSessionManager;
+
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -14,10 +20,9 @@ public class MediaController {
 
     private final RoomSessionManager roomSessionManager;
 
-    // ── Клиентский эндпоинт ──────────────────────────────────────────
 
     @GetMapping("/stream/{roomId}")
-    public ResponseEntity<StreamingResponseBody> stream(@PathVariable String roomId) {
+    public ResponseEntity<StreamingResponseBody> stream(@PathVariable UUID roomId) {
 
         BroadcastSession session = roomSessionManager.getSession(roomId);
 
@@ -45,11 +50,9 @@ public class MediaController {
                 .body(body);
     }
 
-    // ── Internal эндпоинты для queue-service ─────────────────────────
 
     @PostMapping("/internal/play")
     public ResponseEntity<Void> play(@RequestBody PlayRequest request) throws Exception {
-        log.info("Play command: room={} url={}", request.roomId(), request.youtubeUrl());
         roomSessionManager.startSession(request.roomId(), request.youtubeUrl());
         return ResponseEntity.ok().build();
     }
@@ -74,7 +77,4 @@ public class MediaController {
         roomSessionManager.stopSession(request.roomId());
         return ResponseEntity.ok().build();
     }
-
-    public record PlayRequest(String roomId, String youtubeUrl) {}
-    public record RoomRequest(String roomId) {}
 }

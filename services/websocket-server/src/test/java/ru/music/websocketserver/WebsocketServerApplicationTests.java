@@ -1,10 +1,10 @@
-package ru.music.media;
+package ru.music.websocketserver;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class MediaServiceApplicationTests {
+class WebsocketServerApplicationTests {
 
     @Test
     void contextLoads() {

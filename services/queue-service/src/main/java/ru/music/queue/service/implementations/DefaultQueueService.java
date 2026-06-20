@@ -229,13 +229,13 @@ public class DefaultQueueService implements QueueService {
         TrackDto trackInfo = trackMapper.entityToDto(track, queue.getTracks().indexOf(track));
         TrackChangedEvent event = new TrackChangedEvent(trackInfo);
 
-        String routingKey = "room." + queue.getRoomId() + ".track.changed";
+        String routingKey = "topic.room." + queue.getRoomId() + ".track.changed";
 
         rabbitTemplate.convertAndSend(
-                RabbitMqConfig.TRACK_CHANGED_EXCHANGE,
+                RabbitMqConfig.TRACK_CHANGED_ROUTING_KEY,
                 routingKey,
                 event
         );
-        log.info("Published TrackChangedEvent for room {}", queue.getRoomId());
+        log.info("Published TrackChangedEvent for room {} to STOMP topic", queue.getRoomId());
     }
 }

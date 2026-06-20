@@ -1,9 +1,11 @@
-package ru.music.media;
+package ru.music.media.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.music.media.feign.QueueServiceClient;
 
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -11,13 +13,13 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class RoomSessionManager {
     private final AudioStreamService audioStreamService;
-    private final ConcurrentHashMap<String, BroadcastSession> sessions = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, BroadcastSession> sessions = new ConcurrentHashMap<>();
     private final QueueServiceClient queueServiceClient;
     
-    public void startSession(String roomId, String youtubeUrl) throws Exception {
+    public void startSession(UUID roomId, String youtubeUrl) throws Exception {
         stopSession(roomId);
 
-        Runnable onFinished = () -> queueServiceClient.notifyTrackFinished(roomId);
+        Runnable onFinished = () -> queueServiceClient.nextTrack(roomId);
 
         var audioStream = audioStreamService.getAudioStream(youtubeUrl);
         var session = new BroadcastSession(audioStream.inputStream(), audioStream.ffmpegProcess(), onFinished);
@@ -25,7 +27,7 @@ public class RoomSessionManager {
         sessions.put(roomId, session);
     }
 
-    public void stopSession(String roomId) {
+    public void stopSession(UUID roomId) {
         BroadcastSession session = sessions.remove(roomId);
         if (session != null) {
             log.info("Stopping session for room={}", roomId);
@@ -33,7 +35,7 @@ public class RoomSessionManager {
         }
     }
 
-    public void pauseSession(String roomId) {
+    public void pauseSession(UUID roomId) {
         BroadcastSession session = sessions.get(roomId);
         if (session == null) {
             throw new IllegalStateException("No active session for room: " + roomId);
@@ -41,7 +43,7 @@ public class RoomSessionManager {
         session.pause();
     }
 
-    public void resumeSession(String roomId) {
+    public void resumeSession(UUID roomId) {
         BroadcastSession session = sessions.get(roomId);
         if (session == null) {
             throw new IllegalStateException("No active session for room: " + roomId);
@@ -49,11 +51,11 @@ public class RoomSessionManager {
         session.resume();
     }
 
-    public BroadcastSession getSession(String roomId) {
+    public BroadcastSession getSession(UUID roomId) {
         return sessions.get(roomId);
     }
 
-    public boolean hasSession(String roomId) {
+    public boolean hasSession(UUID roomId) {
         return sessions.containsKey(roomId);
     }
 }

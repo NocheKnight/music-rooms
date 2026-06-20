@@ -21,6 +21,7 @@
     <module>services/api-gateway</module>
     <module>services/media-service</module>
     <module>services/webhook-handler-service</module>
+    <module>services/websocket-server</module>
   </modules>
 
   <properties>
