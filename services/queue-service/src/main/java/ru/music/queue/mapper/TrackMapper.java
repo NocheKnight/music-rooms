@@ -4,6 +4,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import ru.music.queue.dto.AddTrackRequest;
 import ru.music.queue.dto.TrackDto;
+import ru.music.queue.model.Queue;
 import ru.music.queue.model.Track;
 import ru.music.queue.model.TrackSource;
 
@@ -16,8 +17,9 @@ import java.util.UUID;
         }
 )
 public interface TrackMapper {
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "addedBy", source = "userId")
-    Track addTrackRequestToEntity(AddTrackRequest addTrackRequest, UUID userId);
+    Track addTrackRequestToEntity(AddTrackRequest addTrackRequest, UUID userId, Queue queue);
 
     TrackDto entityToDto(Track track, int position);
 }

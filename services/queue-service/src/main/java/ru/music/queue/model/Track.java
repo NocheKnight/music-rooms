@@ -38,4 +38,8 @@ public class Track {
 
     @Column(nullable = false)
     private UUID addedBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "queue_id", nullable = false)
+    private Queue queue;
 }
