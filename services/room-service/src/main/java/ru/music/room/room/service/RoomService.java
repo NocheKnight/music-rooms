@@ -3,6 +3,7 @@ package ru.music.room.room.service;
 import lombok.extern.slf4j.Slf4j;
 import ru.music.room.auth.model.User;
 import ru.music.room.auth.service.UserService;
+import ru.music.room.room.client.QueueServiceClient;
 import ru.music.room.room.dto.CreateRoomRequest;
 import ru.music.room.room.dto.JoinRoomRequest;
 import ru.music.room.room.dto.RoomResponse;
@@ -25,6 +26,7 @@ public class RoomService {
     private final RoomRepository roomRepository;
     private final UserService userService;
     private final RoomMapper roomMapper;
+    private final QueueServiceClient queueServiceClient;
 
     private final ReentrantLock inviteCodeLock = new ReentrantLock();
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -44,6 +46,13 @@ public class RoomService {
 
         Room savedRoom = roomRepository.save(room);
         log.info("Room created: id={}, inviteCode={}", savedRoom.getId(), savedRoom.getInviteCode());
+
+        try {
+            queueServiceClient.createQueue(savedRoom.getId());
+            log.info("Queue created for room {}", savedRoom.getId());
+        } catch (Exception e) {
+            log.error("Failed to create queue for room {}", savedRoom.getId(), e);
+        }
 
         return roomMapper.toResponse(savedRoom);
     }
