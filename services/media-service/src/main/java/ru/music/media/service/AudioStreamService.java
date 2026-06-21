@@ -13,20 +13,25 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class AudioStreamService {
     public AudioStream getAudioStream(String youtubeUrl) throws Exception {
+        String cleanUrl = youtubeUrl.contains("v=")
+                ? "https://www.youtube.com/watch?v=" + youtubeUrl.replaceAll(".*v=([^&]+).*", "$1")
+                : youtubeUrl;
 
         ProcessBuilder ytDlp = new ProcessBuilder(
                 "D:\\Downloads\\files for priglos\\yt-dlp.exe",
                 "-f", "bestaudio",
                 "--get-url",
-                youtubeUrl
+                cleanUrl
         );
 
         Process ytDlpProcess = ytDlp.start();
 
         String audioUrl = new String(ytDlpProcess.getInputStream().readAllBytes()).trim();
 
+        log.info("yt-dlp audio url: {}", audioUrl);
+
         if (audioUrl.isEmpty()) {
-            throw new RuntimeException("yt-dlp не смог получить URL для: " + youtubeUrl);
+            throw new RuntimeException("yt-dlp не смог получить URL для: " + cleanUrl);
         }
 
         ProcessBuilder ffmpeg = new ProcessBuilder(
@@ -47,13 +52,17 @@ public class AudioStreamService {
     }
 
     public TrackMeta getTrackMeta(String youtubeUrl) throws Exception {
-        log.info("getTrackMeta start: {}", youtubeUrl);
+        String cleanUrl = youtubeUrl.contains("v=")
+                ? "https://www.youtube.com/watch?v=" + youtubeUrl.replaceAll(".*v=([^&]+).*", "$1")
+                : youtubeUrl;
+
+        log.info("getTrackMeta start: {}", cleanUrl);
 
         ProcessBuilder ytDlp = new ProcessBuilder(
                 "D:\\Downloads\\files for priglos\\yt-dlp.exe",
                 "--no-playlist",
                 "--print", "%(title)s\n%(uploader)s\n%(duration)s",
-                youtubeUrl
+                cleanUrl
         );
 
         log.info("Starting yt-dlp process");
@@ -64,7 +73,7 @@ public class AudioStreamService {
 
         if (!finished) {
             process.destroyForcibly();
-            log.error("yt-dlp timed out for url: {}", youtubeUrl);
+            log.error("yt-dlp timed out for url: {}", cleanUrl);
             throw new RuntimeException("yt-dlp timeout");
         }
 

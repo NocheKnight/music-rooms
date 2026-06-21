@@ -19,6 +19,7 @@ import ru.music.media.model.TrackSource;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @RestController
@@ -82,6 +83,7 @@ public class MediaController {
             @RequestHeader("X-User-Id") UUID userId
     ) throws Exception {
         TrackMeta meta = audioStreamService.getTrackMeta(youtubeUrl);
+        log.info("getTrackMeta done, calling addTrack");
 
         AddTrackRequest request = new AddTrackRequest();
         request.setName(meta.title());
@@ -91,13 +93,20 @@ public class MediaController {
         request.setStreamUrl(youtubeUrl);
 
         TrackDto track = queueServiceClient.addTrack(roomId, request, userId);
+        log.info("addTrack done, returning response");
         return ResponseEntity.ok(track);
     }
 
 
     @PostMapping("/internal/play")
-    public ResponseEntity<Void> play(@RequestBody PlayRequest request) throws Exception {
-        roomSessionManager.startSession(request.roomId(), request.youtubeUrl());
+    public ResponseEntity<Void> play(@RequestBody PlayRequest request) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                roomSessionManager.startSession(request.roomId(), request.youtubeUrl());
+            } catch (Exception e) {
+                log.error("Failed to start session", e);
+            }
+        });
         return ResponseEntity.ok().build();
     }
 
