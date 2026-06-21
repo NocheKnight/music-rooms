@@ -53,7 +53,7 @@ public class RoomService {
         log.info("Room created: id={}, inviteCode={}", savedRoom.getId(), savedRoom.getInviteCode());
 
         try {
-            queueServiceClient.createQueue(savedRoom.getId());
+            queueServiceClient.createQueue(savedRoom.getId(), creator.getKeycloakId());
             log.info("Queue created for room {}", savedRoom.getId());
         } catch (Exception e) {
             log.error("Failed to create queue for room {}", savedRoom.getId(), e);

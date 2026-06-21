@@ -3,6 +3,7 @@ package ru.music.room.room.client;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.UUID;
 
@@ -12,5 +13,8 @@ import java.util.UUID;
 )
 public interface QueueServiceClient {
     @PostMapping("/api/queue/{roomId}")
-    void createQueue(@PathVariable(name = "roomId") UUID roomId);
+    void createQueue(
+            @PathVariable(name = "roomId") UUID roomId,
+            @RequestHeader("X-User-Id") UUID userId
+    );
 }
