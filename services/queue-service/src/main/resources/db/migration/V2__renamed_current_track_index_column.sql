@@ -1,0 +1,1 @@
+ALTER TABLE queues RENAME COLUMN current_track_index TO current_track_position;

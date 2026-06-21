@@ -1,7 +1,6 @@
 package ru.music.queue.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +17,7 @@ import ru.music.queue.dto.AddTrackRequest;
 import ru.music.queue.dto.MoveTrackRequest;
 import ru.music.queue.dto.RoomResponse;
 import ru.music.queue.dto.TrackChangedEvent;
-import ru.music.queue.feign.RoomClient;
+import ru.music.queue.feign.RoomServiceClient;
 import ru.music.queue.model.Queue;
 import ru.music.queue.model.TrackSource;
 import ru.music.queue.repository.QueueRepository;
@@ -29,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -54,7 +52,7 @@ class QueueControllerTest {
     private QueueRepository queueRepository;
 
     @MockitoBean
-    private RoomClient roomClient;
+    private RoomServiceClient roomServiceClient;
 
     @MockitoBean
     private RabbitTemplate rabbitTemplate;
@@ -82,7 +80,7 @@ class QueueControllerTest {
                 Set.of(),
                 Instant.now()
         );
-        when(roomClient.getRoom(roomId))
+        when(roomServiceClient.getRoom(roomId))
                 .thenReturn(new ResponseEntity<>(roomResponse, HttpStatus.OK));
 
         doNothing().when(rabbitTemplate).convertAndSend(
