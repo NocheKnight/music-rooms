@@ -1,10 +1,13 @@
 package ru.music.room.room.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import ru.music.room.auth.model.User;
 import ru.music.room.auth.service.UserService;
+import ru.music.room.config.RabbitMqConfig;
 import ru.music.room.room.dto.CreateRoomRequest;
 import ru.music.room.room.dto.JoinRoomRequest;
+import ru.music.room.room.dto.RoomChangedEvent;
 import ru.music.room.room.dto.RoomResponse;
 import ru.music.room.room.mapper.RoomMapper;
 import ru.music.room.room.model.Room;
@@ -30,6 +33,8 @@ public class RoomService {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final String INVITE_CODE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private static final int INVITE_CODE_LENGTH = 8;
+
+    private final RabbitTemplate rabbitTemplate;
 
     @Transactional
     public RoomResponse createRoom(CreateRoomRequest request, User creator) {
@@ -67,6 +72,7 @@ public class RoomService {
             log.info("User {} joined room {}", userId, room.getId());
         }
 
+        publishTrackChangedEvent(room);
         return roomMapper.toResponse(room);
     }
 
@@ -100,5 +106,19 @@ public class RoomService {
             sb.append(INVITE_CODE_CHARS.charAt(index));
         }
         return sb.toString();
+    }
+
+    private void publishTrackChangedEvent(Room room) {
+        RoomResponse roomResponse = roomMapper.toResponse(room);
+        RoomChangedEvent event = new RoomChangedEvent(roomResponse);
+
+        String routingKey = "room." + room.getId() + ".changed";
+
+        rabbitTemplate.convertAndSend(
+                RabbitMqConfig.ROOM_CHANGED_EXCHANGE,
+                routingKey,
+                event
+        );
+        log.info("Published RoomChangedEvent with id {} to STOMP topic", room.getId());
     }
 }

@@ -17,15 +17,17 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
 
   datasource:
-    url: jdbc:postgresql://postgres:5432/music_rooms
+    url: jdbc:postgresql://localhost:5432/music_rooms
     username: music_user
     password: music_pass
     driver-class-name: org.postgresql.Driver
 
   rabbitmq:
-    host: rabbitmq
+    host: localhost
     port: 5672
     username: guest
     password: guest
@@ -36,7 +38,7 @@ spring:
 
 services:
   room-service:
-    url: http://room-service:8082
+    url: http://localhost:8082
 
 logging:
   level:
