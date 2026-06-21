@@ -73,6 +73,8 @@ services:
       dockerfile: services/media-service/Dockerfile
     ports:
       - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     volumes:
       - ./logs:/app/logs
     depends_on:

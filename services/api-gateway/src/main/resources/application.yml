@@ -88,7 +88,7 @@ spring:
                 - RewritePath=/api/queue-service/(?<segment>.*), /$\{segment}
 
             - id: media-service-api
-              uri: http://media-service:8084
+              uri: http://localhost:8084
               predicates:
                 - Path=/api/media/**
               filters:
@@ -97,7 +97,7 @@ spring:
                     name: Authorization
 
             - id: media-service-swagger
-              uri: http://media-service:8084
+              uri: http://localhost:8084
               predicates:
                 - Path=/api/media-service/v3/api-docs
               filters:
