@@ -29,6 +29,7 @@ public class SecurityConfig {
                                 "api/auth/**"
                         ).permitAll()
                         .pathMatchers("/api/*/v3/api-docs/**").permitAll()
+                        .pathMatchers("/api/media/stream/**").permitAll()
                         .pathMatchers("/realms/**", "/protocol/**", "/resources/**", "/auth/**",
                                 "/admin/**",
                                 "/js/**",

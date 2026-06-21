@@ -28,7 +28,7 @@ public class QueueController {
             @Valid @RequestBody AddTrackRequest request,
             @AuthenticationPrincipal UUID userId) {
         TrackDto track = queueService.addTrack(roomId, request, userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(track);
+        return ResponseEntity.ok(track);
     }
 
     @GetMapping("/tracks/current")
