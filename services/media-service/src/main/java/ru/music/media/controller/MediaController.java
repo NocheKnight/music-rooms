@@ -23,6 +23,7 @@ import java.util.UUID;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/media")
 public class MediaController {
 
     private final RoomSessionManager roomSessionManager;
