@@ -1,10 +1,8 @@
 package ru.music.queue.service.implementations;
 
-import jakarta.transaction.Transactional;
-import jdk.jshell.spi.ExecutionControl;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,14 +14,14 @@ import ru.music.queue.dto.*;
 import ru.music.queue.exception.QueueNotFoundException;
 import ru.music.queue.exception.RoomNotFoundException;
 import ru.music.queue.exception.TrackNotFoundException;
-import ru.music.queue.feign.RoomClient;
+import ru.music.queue.feign.RoomServiceClient;
 import ru.music.queue.model.Queue;
 import ru.music.queue.model.Track;
 import ru.music.queue.repository.QueueRepository;
 import ru.music.queue.repository.TrackRepository;
 import ru.music.queue.service.QueueService;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -37,39 +35,43 @@ public class DefaultQueueService implements QueueService {
     private final TrackMapper trackMapper;
     private final QueueMapper queueMapper;
 
-    private final RoomClient roomClient;
+    private final RoomServiceClient roomServiceClient;
     private final RabbitTemplate rabbitTemplate;
 
     @Override
     @Transactional
     public TrackDto addTrack(UUID roomId, AddTrackRequest request, UUID userId) {
-        ResponseEntity<RoomResponse> roomRe = roomClient.getRoom(roomId);
+        ResponseEntity<RoomResponse> roomRe = roomServiceClient.getRoom(roomId);
         if (roomRe.getStatusCode() != HttpStatus.OK) {
             throw new RoomNotFoundException(roomId);
         }
 
         Queue queue = queueRepository.findByRoomId(roomId)
                 .orElseThrow(() -> new QueueNotFoundException(roomId));
-        Track track = trackMapper.addTrackRequestToEntity(request, userId);
+        Track track = trackMapper.addTrackRequestToEntity(request, userId, queue);
 
-        if (queue.getTracks().isEmpty()) {
+        List<Track> queueTrack = queue.getTracks();
+        if (queueTrack.isEmpty()) {
             queue.setCurrentTrackPosition(0);
         }
 
         int position = request.getPosition() == null ?
-                queue.getTracks().size() :
-                Math.clamp(request.getPosition(), 0, queue.getTracks().size());
-        queue.getTracks().add(position, track);
+                queueTrack.size() :
+                Math.clamp(request.getPosition(), 0, queueTrack.size());
+        queueTrack.add(position, track);
 
-        Track saved = trackRepository.save(track);
-        log.info("Track {} added to room {} at position {}", saved.getId(), roomId, position);
+        log.info("Track id before save = {}", track.getId());
+        Track savedTrack = trackRepository.save(track);
+        Queue savedQueue = queueRepository.save(queue);
+        log.info("Track {} added to room {} at position {}", savedTrack.getId(), roomId, position);
 
-        return trackMapper.entityToDto(saved, position);
+        return trackMapper.entityToDto(savedTrack, position);
     }
 
     @Override
+    @Transactional
     public TrackDto getCurrentTrack(UUID roomId) {
-        ResponseEntity<RoomResponse> roomRe = roomClient.getRoom(roomId);
+        ResponseEntity<RoomResponse> roomRe = roomServiceClient.getRoom(roomId);
         if (roomRe.getStatusCode() != HttpStatus.OK) {
             throw new RoomNotFoundException(roomId);
         }
@@ -88,7 +90,7 @@ public class DefaultQueueService implements QueueService {
     @Override
     @Transactional
     public void moveTrack(UUID roomId, UUID trackId, int newPosition) {
-        ResponseEntity<RoomResponse> roomRe = roomClient.getRoom(roomId);
+        ResponseEntity<RoomResponse> roomRe = roomServiceClient.getRoom(roomId);
         if (roomRe.getStatusCode() != HttpStatus.OK) {
             throw new RoomNotFoundException(roomId);
         }
@@ -119,7 +121,7 @@ public class DefaultQueueService implements QueueService {
     @Override
     @Transactional
     public void removeTrack(UUID roomId, UUID trackId) {
-        ResponseEntity<RoomResponse> roomRe = roomClient.getRoom(roomId);
+        ResponseEntity<RoomResponse> roomRe = roomServiceClient.getRoom(roomId);
         if (roomRe.getStatusCode() != HttpStatus.OK) {
             throw new RoomNotFoundException(roomId);
         }
@@ -136,8 +138,9 @@ public class DefaultQueueService implements QueueService {
     }
 
     @Override
+    @Transactional
     public TrackDto next(UUID roomId) {
-        ResponseEntity<RoomResponse> roomRe = roomClient.getRoom(roomId);
+        ResponseEntity<RoomResponse> roomRe = roomServiceClient.getRoom(roomId);
         if (roomRe.getStatusCode() != HttpStatus.OK) {
             throw new RoomNotFoundException(roomId);
         }
@@ -156,8 +159,9 @@ public class DefaultQueueService implements QueueService {
     }
 
     @Override
+    @Transactional
     public TrackDto previous(UUID roomId) {
-        ResponseEntity<RoomResponse> roomRe = roomClient.getRoom(roomId);
+        ResponseEntity<RoomResponse> roomRe = roomServiceClient.getRoom(roomId);
         if (roomRe.getStatusCode() != HttpStatus.OK) {
             throw new RoomNotFoundException(roomId);
         }
@@ -178,7 +182,7 @@ public class DefaultQueueService implements QueueService {
     @Override
     @Transactional
     public QueueDto createQueue(UUID roomId) {
-        ResponseEntity<RoomResponse> roomRe = roomClient.getRoom(roomId);
+        ResponseEntity<RoomResponse> roomRe = roomServiceClient.getRoom(roomId);
         if (roomRe.getStatusCode() != HttpStatus.OK) {
             throw new RoomNotFoundException(roomId);
         }
@@ -194,8 +198,9 @@ public class DefaultQueueService implements QueueService {
     }
 
     @Override
+    @Transactional
     public QueueDto getQueue(UUID roomId) {
-        ResponseEntity<RoomResponse> roomRe = roomClient.getRoom(roomId);
+        ResponseEntity<RoomResponse> roomRe = roomServiceClient.getRoom(roomId);
         if (roomRe.getStatusCode() != HttpStatus.OK) {
             throw new RoomNotFoundException(roomId);
         }
@@ -209,7 +214,7 @@ public class DefaultQueueService implements QueueService {
     @Override
     @Transactional
     public void clearQueue(UUID roomId) {
-        ResponseEntity<RoomResponse> roomRe = roomClient.getRoom(roomId);
+        ResponseEntity<RoomResponse> roomRe = roomServiceClient.getRoom(roomId);
         if (roomRe.getStatusCode() != HttpStatus.OK) {
             throw new RoomNotFoundException(roomId);
         }

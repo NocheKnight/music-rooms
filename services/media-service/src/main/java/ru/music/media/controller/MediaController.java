@@ -8,9 +8,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import ru.music.media.dto.PlayRequest;
 import ru.music.media.dto.RoomRequest;
+import ru.music.media.entity.TrackMeta;
 import ru.music.media.service.BroadcastSession;
 import ru.music.media.service.RoomSessionManager;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -48,6 +50,21 @@ public class MediaController {
                 .header(HttpHeaders.TRANSFER_ENCODING, "chunked")
                 .header("X-Content-Type-Options", "nosniff")
                 .body(body);
+    }
+
+    @GetMapping("/stream/{roomId}/meta")
+    public ResponseEntity<Map<String, Object>> getMeta(@PathVariable UUID roomId) {
+        BroadcastSession session = roomSessionManager.getSession(roomId);
+        if (session == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        TrackMeta meta = session.getTrackMeta();
+        return ResponseEntity.ok(Map.of(
+                "title", meta.title(),
+                "durationSeconds", meta.durationSeconds(),
+                "positionSeconds", session.getPositionSeconds()
+        ));
     }
 
 

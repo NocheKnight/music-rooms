@@ -3,6 +3,7 @@ package ru.music.media.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.music.media.entity.TrackMeta;
 import ru.music.media.feign.QueueServiceClient;
 
 import java.util.UUID;
@@ -21,8 +22,9 @@ public class RoomSessionManager {
 
         Runnable onFinished = () -> queueServiceClient.nextTrack(roomId);
 
+        TrackMeta meta = audioStreamService.getTrackMeta(youtubeUrl);
         var audioStream = audioStreamService.getAudioStream(youtubeUrl);
-        var session = new BroadcastSession(audioStream.inputStream(), audioStream.ffmpegProcess(), onFinished);
+        var session = new BroadcastSession(audioStream.inputStream(), audioStream.ffmpegProcess(), onFinished, meta);
 
         sessions.put(roomId, session);
     }

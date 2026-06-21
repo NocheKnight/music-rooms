@@ -22,8 +22,7 @@ public class Queue {
     @Column(nullable = false, unique = true)
     private UUID roomId;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "queue_id")
+    @OneToMany(mappedBy = "queue", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Track> tracks = new ArrayList<>();
 

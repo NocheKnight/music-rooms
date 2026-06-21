@@ -2,6 +2,7 @@ package ru.music.media.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.music.media.entity.TrackMeta;
 import ru.music.media.model.AudioStream;
 
 @Service
@@ -39,5 +40,22 @@ public class AudioStreamService {
         Process ffmpegProcess = ffmpeg.start();
 
         return new AudioStream(ffmpegProcess.getInputStream(), ffmpegProcess);
+    }
+
+    public TrackMeta getTrackMeta(String youtubeUrl) throws Exception {
+        ProcessBuilder ytDlp = new ProcessBuilder(
+                "yt-dlp",
+                "--print", "%(title)s\n%(duration)s",
+                youtubeUrl
+        );
+
+        Process process = ytDlp.start();
+        String output = new String(process.getInputStream().readAllBytes()).trim();
+        String[] lines = output.split("\n");
+
+        String title = lines.length > 0 ? lines[0] : "Unknown";
+        long duration = lines.length > 1 ? Long.parseLong(lines[1].trim()) : 0;
+
+        return new TrackMeta(title, duration);
     }
 }

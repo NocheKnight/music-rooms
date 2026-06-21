@@ -1,6 +1,8 @@
 package ru.music.media.service;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import ru.music.media.entity.TrackMeta;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +15,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class BroadcastSession {
     private final Set<OutputStream> subscribers = new CopyOnWriteArraySet<>();
 
+    @Getter
+    private final TrackMeta trackMeta;
+    private final long startedAt = System.currentTimeMillis();
+
     private final Process ffmpegProcess;
     private final Thread readerThread;
 
@@ -21,9 +27,10 @@ public class BroadcastSession {
 
     private final Runnable onFinished;
 
-    public BroadcastSession(InputStream ffmpegStream, Process ffmpegProcess, Runnable onFinished) {
+    public BroadcastSession(InputStream ffmpegStream, Process ffmpegProcess, Runnable onFinished, TrackMeta trackMeta) {
         this.ffmpegProcess = ffmpegProcess;
         this.onFinished = onFinished;
+        this.trackMeta = trackMeta;
 
         this.readerThread = new Thread(() -> {
             byte[] buffer = new byte[4096];
@@ -66,6 +73,10 @@ public class BroadcastSession {
         if (subscribers.isEmpty()) {
             stop();
         }
+    }
+
+    public long getPositionSeconds() {
+        return (System.currentTimeMillis() - startedAt) / 1000;
     }
 
     private void broadcast(byte[] buffer, int length) {
