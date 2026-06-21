@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import ru.music.media.dto.PlayRequest;
 import ru.music.media.dto.RoomRequest;
-import ru.music.media.dto.TrackMetaResponse;
 import ru.music.media.entity.TrackMeta;
 import ru.music.media.service.BroadcastSession;
 import ru.music.media.service.RoomSessionManager;
