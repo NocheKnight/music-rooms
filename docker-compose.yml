@@ -51,6 +51,20 @@ services:
       room-service:
         condition: service_started
 
+  websocket-server:
+    container_name: websocket-server
+    build:
+      context: .
+      dockerfile: services/websocket-server/Dockerfile
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+
   queue-service:
     container_name: queue-service
     build:
