@@ -83,6 +83,13 @@ spring:
                 - Path=/api/media-service/v3/api-docs
               filters:
                 - RewritePath=/api/media-service/(?<segment>.*), /$\{segment}
+
+            - id: websocket-server
+              uri: http://websocket-server:8085
+              predicates:
+                - Path=/api/ws/**
+              filters:
+                - StripPrefix=0
   #  cloud:
   #    gateway:
   #      routes:

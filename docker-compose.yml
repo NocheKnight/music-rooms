@@ -184,7 +184,7 @@ services:
       KC_SPI_EVENTS_LISTENER: rabbitmq
 
     volumes:
-      - ./providers:/opt/keycloak/providers   # 👈 МОНТИРУЕМ ПАПКУ С ПЛАГИНАМИ
+      - ./services/providers:/opt/keycloak/providers   # 👈 МОНТИРУЕМ ПАПКУ С ПЛАГИНАМИ
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
     ports:
       - "8081:8080"
