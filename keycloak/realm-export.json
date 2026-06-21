@@ -9,6 +9,10 @@
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
   "editUsernameAllowed": false,
+  "eventsListeners": ["jboss-logging", "keycloak-to-rabbitmq"],
+  "eventsEnabled": true,
+  "adminEventsEnabled": true,
+  "adminEventsDetailsEnabled": true,
 
   "requiredActions": [
     {

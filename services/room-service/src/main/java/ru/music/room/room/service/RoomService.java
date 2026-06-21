@@ -78,6 +78,8 @@ public class RoomService {
 
     @Transactional(readOnly = true)
     public RoomResponse getRoom(UUID roomId) {
+        log.info("Searching room {}", roomId);
+
         log.debug("Fetching room {}", roomId);
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("Room not found with id: " + roomId));

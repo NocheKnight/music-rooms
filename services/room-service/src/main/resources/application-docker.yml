@@ -36,6 +36,10 @@ spring:
           issuer-uri: http://keycloak:8080/realms/music-realm
           jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
 
+services:
+  queue-service:
+    url: http://queue-service:8083
+
 management:
   endpoints:
     web:

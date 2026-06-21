@@ -46,8 +46,7 @@ public class DefaultQueueService implements QueueService {
             throw new RoomNotFoundException(roomId);
         }
 
-        Queue queue = queueRepository.findByRoomId(roomId)
-                .orElseThrow(() -> new QueueNotFoundException(roomId));
+        Queue queue = getOrCreateQueue(roomId);
         Track track = trackMapper.addTrackRequestToEntity(request, userId, queue);
 
         List<Track> queueTrack = queue.getTracks();
@@ -62,6 +61,10 @@ public class DefaultQueueService implements QueueService {
 
         log.info("Track id before save = {}", track.getId());
         Track savedTrack = trackRepository.save(track);
+        if (queue.getCurrentTrackPosition() == 0) {
+            publishTrackChangedEvent(queue, savedTrack);
+        }
+
         Queue savedQueue = queueRepository.save(queue);
         log.info("Track {} added to room {} at position {}", savedTrack.getId(), roomId, position);
 
@@ -182,7 +185,13 @@ public class DefaultQueueService implements QueueService {
     @Override
     @Transactional
     public QueueDto createQueue(UUID roomId) {
-        ResponseEntity<RoomResponse> roomRe = roomServiceClient.getRoom(roomId);
+        log.info("Creating queue for room {}", roomId);
+
+        ResponseEntity<RoomResponse> roomRe =
+                roomServiceClient.getRoom(roomId);
+
+        log.info("Room service response {}", roomRe.getStatusCode());
+
         if (roomRe.getStatusCode() != HttpStatus.OK) {
             throw new RoomNotFoundException(roomId);
         }
@@ -228,6 +237,16 @@ public class DefaultQueueService implements QueueService {
         queueRepository.save(queue);
 
         log.info("Queue for room {} cleared. Removed {} tracks", roomId, queueSize);
+    }
+
+    private Queue getOrCreateQueue(UUID roomId) {
+        return queueRepository.findByRoomId(roomId)
+                .orElseGet(() -> {
+                    Queue queue = Queue.builder()
+                            .roomId(roomId)
+                            .build();
+                    return queueRepository.save(queue);
+                });
     }
 
     private void publishTrackChangedEvent(Queue queue, Track track) {
