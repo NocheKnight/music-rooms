@@ -84,7 +84,15 @@ spring:
               filters:
                 - RewritePath=/api/media-service/(?<segment>.*), /$\{segment}
 
-            - id: websocket-server
+            - id: websocket-server-room-service
+              uri: ws://localhost:8082
+              predicates:
+                - Path=/api/ws/**
+              filters:
+                - RewritePath=/api/ws(?<segment>/?.*), /ws${segment}
+                - StripPrefix=0
+
+            - id: websocket-server-queue-service
               uri: ws://localhost:8085
               predicates:
                 - Path=/api/ws/**

@@ -2,11 +2,15 @@ server:
   port: 8083
 
 spring:
+  application:
+    name: queue-service
+
   flyway:
     enabled: true
     baseline-on-migrate: true
     repair-on-migrate: true
     schemas: public
+
   jpa:
     hibernate:
       ddl-auto: none
@@ -15,7 +19,6 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     show-sql: true
-
 
   datasource:
     url: jdbc:postgresql://localhost:5432/music_rooms_queues
@@ -42,18 +45,8 @@ logging:
     ru.music.queue: DEBUG
     org.flywaydb: DEBUG
     org.springframework.jdbc: DEBUG
-    org.hibernate.SQL: DEBUG
-    org:
-      hibernate:
-        orm:
-          jdbc:
-            bind: TRACE
 
 springdoc:
-#  api-docs:
-#    servers:
-#      - url: http://localhost:8080
-  #    path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
     operations-sorter: method
