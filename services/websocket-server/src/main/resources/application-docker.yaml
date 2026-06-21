@@ -5,8 +5,12 @@ spring:
   application:
     name: websocket-server
 
+  config:
+    activate:
+      on-profile: docker
+
   rabbitmq:
-    host: localhost
+    host: rabbitmq
     stomp-port: 61613
     username: guest
     password: guest

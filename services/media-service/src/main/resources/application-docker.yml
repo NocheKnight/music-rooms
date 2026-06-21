@@ -2,6 +2,12 @@ server:
   port: 8084
 
 spring:
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: guest
+    password: guest
+
   flyway:
     enabled: true
     baseline-on-migrate: true

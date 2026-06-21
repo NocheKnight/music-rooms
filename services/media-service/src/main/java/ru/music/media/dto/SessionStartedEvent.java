@@ -1,7 +1,6 @@
-package ru.music.queue.dto;
+package ru.music.media.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,8 +9,6 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class TrackChangedEvent {
+public class SessionStartedEvent {
     private UUID roomId;
-    private TrackDto currentTrack;
 }

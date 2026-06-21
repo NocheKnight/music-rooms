@@ -250,7 +250,7 @@ public class DefaultQueueService implements QueueService {
 
     private void publishTrackChangedEvent(Queue queue, Track track) {
         TrackDto trackInfo = trackMapper.entityToDto(track, queue.getTracks().indexOf(track));
-        TrackChangedEvent event = new TrackChangedEvent(trackInfo);
+        TrackChangedEvent event = new TrackChangedEvent(queue.getRoomId(), trackInfo);
 
         String routingKey = "room." + queue.getRoomId() + ".track.changed";
 
