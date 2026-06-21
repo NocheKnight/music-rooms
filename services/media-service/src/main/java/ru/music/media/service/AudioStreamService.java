@@ -35,7 +35,7 @@ public class AudioStreamService {
         }
 
         ProcessBuilder ffmpeg = new ProcessBuilder(
-                "ffmpeg",
+                "D:\\Downloads\\files for priglos\\ffmpeg-N-125146-gc6bb22dea0-win64-gpl-shared\\ffmpeg-N-125146-gc6bb22dea0-win64-gpl-shared\\bin\\ffmpeg.exe",
                 "-i", audioUrl,      // входной URL
                 "-vn",               // без видео
                 "-acodec", "libmp3lame", // кодек MP3

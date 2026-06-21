@@ -26,8 +26,9 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/webjars/**",
-                                "api/auth/**"
-                        ).permitAll()
+                                "api/auth/**",
+                                "/api/ws/**"
+                                ).permitAll()
                         .pathMatchers("/api/*/v3/api-docs/**").permitAll()
                         .pathMatchers("/api/media/stream/**").permitAll()
                         .pathMatchers("/realms/**", "/protocol/**", "/resources/**", "/auth/**",
