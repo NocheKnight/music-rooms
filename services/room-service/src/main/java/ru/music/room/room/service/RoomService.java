@@ -5,7 +5,6 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import ru.music.room.auth.model.User;
 import ru.music.room.auth.service.UserService;
 import ru.music.room.config.RabbitMqConfig;
-import ru.music.room.room.client.QueueServiceClient;
 import ru.music.room.room.dto.CreateRoomRequest;
 import ru.music.room.room.dto.JoinRoomRequest;
 import ru.music.room.room.dto.RoomChangedEvent;
@@ -29,7 +28,6 @@ public class RoomService {
     private final RoomRepository roomRepository;
     private final UserService userService;
     private final RoomMapper roomMapper;
-    private final QueueServiceClient queueServiceClient;
 
     private final ReentrantLock inviteCodeLock = new ReentrantLock();
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -51,13 +49,6 @@ public class RoomService {
 
         Room savedRoom = roomRepository.save(room);
         log.info("Room created: id={}, inviteCode={}", savedRoom.getId(), savedRoom.getInviteCode());
-
-        try {
-            queueServiceClient.createQueue(savedRoom.getId());
-            log.info("Queue created for room {}", savedRoom.getId());
-        } catch (Exception e) {
-            log.error("Failed to create queue for room {}", savedRoom.getId(), e);
-        }
 
         return roomMapper.toResponse(savedRoom);
     }
@@ -87,6 +78,8 @@ public class RoomService {
 
     @Transactional(readOnly = true)
     public RoomResponse getRoom(UUID roomId) {
+        log.info("Searching room {}", roomId);
+
         log.debug("Fetching room {}", roomId);
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("Room not found with id: " + roomId));
