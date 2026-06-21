@@ -14,7 +14,7 @@ import tools.jackson.databind.json.JsonMapper;
 @Slf4j
 public class RabbitMqConfig {
 
-    public static final String TRACK_CHANGED_ROUTING_KEY = "amq.topic";
+    public static final String TRACK_CHANGED_EXCHANGE = "amq.topic";
 
     @Bean
     public JacksonJsonMessageConverter messageConverter(JsonMapper jsonMapper) {

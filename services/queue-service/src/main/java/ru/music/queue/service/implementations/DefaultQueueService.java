@@ -234,10 +234,10 @@ public class DefaultQueueService implements QueueService {
         TrackDto trackInfo = trackMapper.entityToDto(track, queue.getTracks().indexOf(track));
         TrackChangedEvent event = new TrackChangedEvent(trackInfo);
 
-        String routingKey = "topic.room." + queue.getRoomId() + ".track.changed";
+        String routingKey = "room." + queue.getRoomId() + ".track.changed";
 
         rabbitTemplate.convertAndSend(
-                RabbitMqConfig.TRACK_CHANGED_ROUTING_KEY,
+                RabbitMqConfig.TRACK_CHANGED_EXCHANGE,
                 routingKey,
                 event
         );

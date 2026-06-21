@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
 
-@Configuration
+/*@Configuration
 public class FlywayConfig {
     @Bean(initMethod = "migrate")
     @ConditionalOnProperty(name = "spring.flyway.enabled", havingValue = "true", matchIfMissing = true)
@@ -19,3 +19,4 @@ public class FlywayConfig {
                 .load();
     }
 }
+*/
