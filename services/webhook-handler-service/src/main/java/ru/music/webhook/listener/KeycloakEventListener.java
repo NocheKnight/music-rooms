@@ -25,67 +25,66 @@ public class KeycloakEventListener {
         try {
             Map<String, Object> eventData = objectMapper.readValue(message, Map.class);
 
-            String operationType = (String) eventData.get("operationType");
-            String resourcePath = (String) eventData.get("resourcePath");
-            String resourceType = (String) eventData.get("resourceTypeAsString");
-            if (resourceType == null) {
-                resourceType = (String) eventData.get("resourceType");
+            // Определяем тип события по наличию ключей
+            String userId = null;
+            Map<String, String> details = null;
+            String eventType = null;
+            String operationType = null;
+
+            // Проверяем на admin-событие (EventAdminNotificationMqMsg)
+            if (eventData.containsKey("operationType")) {
+                operationType = (String) eventData.get("operationType");
+                String resourcePath = (String) eventData.get("resourcePath");
+                String resourceType = (String) eventData.get("resourceTypeAsString");
+                if (resourceType == null) {
+                    resourceType = (String) eventData.get("resourceType");
+                }
+                // Извлекаем userId из resourcePath, если это USER
+                if ("USER".equals(resourceType) && resourcePath != null) {
+                    userId = extractUserIdFromPath(resourcePath);
+                }
+                eventType = operationType; // для логики используем operationType
+                log.info("Parsed admin event: operationType={}, userId={}", operationType, userId);
             }
-
-            log.info("Parsed event: operationType={}, resourceType={}, resourcePath={}",
-                    operationType, resourceType, resourcePath);
-
-            if (!"USER".equals(resourceType)) {
-                log.debug("Skipping non-user event: {}", resourceType);
+            // Проверяем на client-событие (EventClientNotificationMqMsg)
+            else if (eventData.containsKey("type")) {
+                eventType = (String) eventData.get("type");
+                userId = (String) eventData.get("userId");
+                details = (Map<String, String>) eventData.get("details");
+                log.info("Parsed client event: type={}, userId={}", eventType, userId);
+            }
+            else {
+                log.warn("Unknown event format, skipping: {}", eventData);
                 return;
             }
 
-            String userId = extractUserIdFromPath(resourcePath);
             if (userId == null) {
                 log.warn("Missing userId in event, skipping");
                 return;
             }
 
-            // Попытка извлечь данные пользователя из representation (если есть)
-            String username = null;
-            String email = null;
-            String firstName = null;
-            String lastName = null;
-
-            String representationJson = (String) eventData.get("representation");
-            if (representationJson != null && !representationJson.isEmpty()) {
-                try {
-                    Map<String, Object> userData = objectMapper.readValue(representationJson, Map.class);
-                    username = (String) userData.get("username");
-                    email = (String) userData.get("email");
-                    firstName = (String) userData.get("firstName");
-                    lastName = (String) userData.get("lastName");
-                } catch (Exception e) {
-                    log.warn("Failed to parse representation: {}", representationJson, e);
-                }
-            }
-
-            // Если не удалось извлечь из representation, пробуем взять из details
-            if (username == null) {
-                Map<String, String> details = (Map<String, String>) eventData.get("details");
+            // Обработка по типу события
+            if ("REGISTER".equals(eventType) || "UPDATE_PROFILE".equals(eventType) || "CREATE".equals(eventType) || "UPDATE".equals(eventType)) {
+                // Для client-событий details уже извлечены, для admin-событий details может не быть
+                String username = null;
+                String email = null;
+                String firstName = null;
+                String lastName = null;
                 if (details != null) {
                     username = details.get("username");
                     email = details.get("email");
                     firstName = details.get("firstName");
                     lastName = details.get("lastName");
                 }
+                userSyncService.syncUser(userId, username, email, firstName, lastName);
+                log.info("Processed {} event for user {}", eventType, userId);
             }
-
-            switch (operationType) {
-                case "CREATE", "UPDATE" -> {
-                    userSyncService.syncUser(userId, username, email, firstName, lastName);
-                    log.info("Processed {} event for user {}", operationType, userId);
-                }
-                case "DELETE" -> {
-                    userSyncService.deleteUser(userId);
-                    log.info("Processed DELETE event for user {}", userId);
-                }
-                default -> log.debug("Unhandled operation type: {}", operationType);
+            else if ("DELETE".equals(eventType) || "DELETE_ACCOUNT".equals(eventType)) {
+                userSyncService.deleteUser(userId);
+                log.info("Processed DELETE event for user {}", userId);
+            }
+            else {
+                log.debug("Unhandled event type: {}", eventType);
             }
 
         } catch (Exception e) {

@@ -22,7 +22,7 @@ springdoc:
 keycloak:
   url: http://localhost:8081
   realm: music-realm
-  client-id: music-client
+  client-id: music-app
   registration:
     client-id: music-registration-client
     client-secret: music-registration-secret
