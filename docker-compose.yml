@@ -58,6 +58,8 @@ services:
       dockerfile: services/queue-service/Dockerfile
     ports:
       - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     volumes:
       - ./logs:/app/logs
     depends_on:
