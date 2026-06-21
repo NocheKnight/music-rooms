@@ -72,6 +72,7 @@ public class RoomService {
             log.info("User {} joined room {}", userId, room.getId());
         }
 
+        publishTrackChangedEvent(room);
         return roomMapper.toResponse(room);
     }
 
