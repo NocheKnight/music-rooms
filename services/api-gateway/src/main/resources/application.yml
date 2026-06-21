@@ -102,7 +102,15 @@ spring:
                 - Path=/api/media-service/v3/api-docs
               filters:
                 - RewritePath=/api/media-service/(?<segment>.*), /$\{segment}
-#  cloud:
+
+            - id: websocket-server
+              uri: ws://localhost:8085
+              predicates:
+                - Path=/api/ws/**
+              filters:
+                - RewritePath=/api/ws(?<segment>/?.*), /ws${segment}
+                - StripPrefix=0
+  #  cloud:
 #    gateway:
 #      routes:
 #        # Маршрут для room-service

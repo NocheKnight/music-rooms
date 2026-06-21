@@ -45,7 +45,7 @@ public class AudioStreamService {
     public TrackMeta getTrackMeta(String youtubeUrl) throws Exception {
         ProcessBuilder ytDlp = new ProcessBuilder(
                 "yt-dlp",
-                "--print", "%(title)s\n%(duration)s",
+                "--print", "%(title)s\n%(uploader)s\n%(duration)s",
                 youtubeUrl
         );
 
@@ -54,8 +54,9 @@ public class AudioStreamService {
         String[] lines = output.split("\n");
 
         String title = lines.length > 0 ? lines[0] : "Unknown";
-        long duration = lines.length > 1 ? Long.parseLong(lines[1].trim()) : 0;
+        String artist = lines.length > 1 ? lines[1] : "Unknown";
+        long duration = lines.length > 2 ? Long.parseLong(lines[2].trim()) : 0;
 
-        return new TrackMeta(title, duration);
+        return new TrackMeta(title, artist, duration);
     }
 }

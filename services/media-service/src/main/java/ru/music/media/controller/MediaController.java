@@ -9,8 +9,13 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import ru.music.media.dto.PlayRequest;
 import ru.music.media.dto.RoomRequest;
 import ru.music.media.entity.TrackMeta;
+import ru.music.media.feign.QueueServiceClient;
+import ru.music.media.service.AudioStreamService;
 import ru.music.media.service.BroadcastSession;
 import ru.music.media.service.RoomSessionManager;
+import ru.music.media.dto.AddTrackRequest;
+import ru.music.media.dto.TrackDto;
+import ru.music.media.model.TrackSource;
 
 import java.util.Map;
 import java.util.UUID;
@@ -21,6 +26,8 @@ import java.util.UUID;
 public class MediaController {
 
     private final RoomSessionManager roomSessionManager;
+    private final AudioStreamService audioStreamService;
+    private final QueueServiceClient queueServiceClient;
 
 
     @GetMapping("/stream/{roomId}")
@@ -65,6 +72,25 @@ public class MediaController {
                 "durationSeconds", meta.durationSeconds(),
                 "positionSeconds", session.getPositionSeconds()
         ));
+    }
+
+    @PostMapping("/parse")
+    public ResponseEntity<TrackDto> parseAndAdd(
+            @RequestParam String youtubeUrl,
+            @RequestParam UUID roomId,
+            @RequestHeader("X-User-Id") UUID userId
+    ) throws Exception {
+        TrackMeta meta = audioStreamService.getTrackMeta(youtubeUrl);
+
+        AddTrackRequest request = new AddTrackRequest();
+        request.setName(meta.title());
+        request.setArtist("Unknown");
+        request.setDurationSec((int) meta.durationSeconds());
+        request.setSource(TrackSource.YOUTUBE);
+        request.setStreamUrl(youtubeUrl);
+
+        TrackDto track = queueServiceClient.addTrack(roomId, request, userId);
+        return ResponseEntity.ok(track);
     }
 
 
