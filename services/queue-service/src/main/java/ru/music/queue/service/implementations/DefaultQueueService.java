@@ -214,8 +214,7 @@ public class DefaultQueueService implements QueueService {
             throw new RoomNotFoundException(roomId);
         }
 
-        Queue queue = queueRepository.findByRoomId(roomId)
-                .orElseThrow(() -> new QueueNotFoundException(roomId));
+        Queue queue = getOrCreateQueue(roomId);
 
         return queueMapper.entityToDto(queue);
     }
