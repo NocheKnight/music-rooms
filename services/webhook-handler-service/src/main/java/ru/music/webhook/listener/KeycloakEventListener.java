@@ -1,5 +1,6 @@
 package ru.music.webhook.listener;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,37 +26,15 @@ public class KeycloakEventListener {
         try {
             Map<String, Object> eventData = objectMapper.readValue(message, Map.class);
 
-            // Определяем тип события по наличию ключей
-            String userId = null;
-            Map<String, String> details = null;
-            String eventType = null;
-            String operationType = null;
+            // Пытаемся определить тип события
+            String eventType = (String) eventData.get("type"); // для EventClientNotificationMqMsg
+            String operationType = (String) eventData.get("operationType"); // для EventAdminNotificationMqMsg
 
-            // Проверяем на admin-событие (EventAdminNotificationMqMsg)
-            if (eventData.containsKey("operationType")) {
-                operationType = (String) eventData.get("operationType");
-                String resourcePath = (String) eventData.get("resourcePath");
-                String resourceType = (String) eventData.get("resourceTypeAsString");
-                if (resourceType == null) {
-                    resourceType = (String) eventData.get("resourceType");
-                }
-                // Извлекаем userId из resourcePath, если это USER
-                if ("USER".equals(resourceType) && resourcePath != null) {
-                    userId = extractUserIdFromPath(resourcePath);
-                }
-                eventType = operationType; // для логики используем operationType
-                log.info("Parsed admin event: operationType={}, userId={}", operationType, userId);
-            }
-            // Проверяем на client-событие (EventClientNotificationMqMsg)
-            else if (eventData.containsKey("type")) {
-                eventType = (String) eventData.get("type");
-                userId = (String) eventData.get("userId");
-                details = (Map<String, String>) eventData.get("details");
-                log.info("Parsed client event: type={}, userId={}", eventType, userId);
-            }
-            else {
-                log.warn("Unknown event format, skipping: {}", eventData);
-                return;
+            // Извлекаем userId (может быть в поле userId или из resourcePath)
+            String userId = (String) eventData.get("userId");
+            String resourcePath = (String) eventData.get("resourcePath");
+            if (userId == null && resourcePath != null) {
+                userId = extractUserIdFromPath(resourcePath);
             }
 
             if (userId == null) {
@@ -63,28 +42,48 @@ public class KeycloakEventListener {
                 return;
             }
 
-            // Обработка по типу события
-            if ("REGISTER".equals(eventType) || "UPDATE_PROFILE".equals(eventType) || "CREATE".equals(eventType) || "UPDATE".equals(eventType)) {
-                // Для client-событий details уже извлечены, для admin-событий details может не быть
-                String username = null;
-                String email = null;
-                String firstName = null;
-                String lastName = null;
+            // Извлекаем данные пользователя
+            String username = null;
+            String email = null;
+            String firstName = null;
+            String lastName = null;
+
+            // Пробуем получить данные из representation (для EventAdminNotificationMqMsg)
+            String representationJson = (String) eventData.get("representation");
+            if (representationJson != null) {
+                try {
+                    Map<String, String> userData = objectMapper.readValue(representationJson, new TypeReference<>() {});
+                    username = userData.get("username");
+                    email = userData.get("email");
+                    firstName = userData.get("firstName");
+                    lastName = userData.get("lastName");
+                } catch (Exception e) {
+                    log.warn("Failed to parse representation: {}", e.getMessage());
+                }
+            }
+
+            // Если не нашли в representation, пробуем из details (для EventClientNotificationMqMsg)
+            if (username == null) {
+                Map<String, String> details = (Map<String, String>) eventData.get("details");
                 if (details != null) {
                     username = details.get("username");
                     email = details.get("email");
                     firstName = details.get("firstName");
                     lastName = details.get("lastName");
                 }
-                userSyncService.syncUser(userId, username, email, firstName, lastName);
-                log.info("Processed {} event for user {}", eventType, userId);
             }
-            else if ("DELETE".equals(eventType) || "DELETE_ACCOUNT".equals(eventType)) {
+
+            // Определяем тип операции
+            String opType = operationType != null ? operationType : eventType;
+            // Для событий типа "REGISTER", "CREATE", "UPDATE" – синхронизация
+            if ("CREATE".equals(opType) || "REGISTER".equals(opType) || "UPDATE".equals(opType)) {
+                userSyncService.syncUser(userId, username, email, firstName, lastName);
+                log.info("Processed {} event for user {}", opType, userId);
+            } else if ("DELETE".equals(opType) || "DELETE_ACCOUNT".equals(opType)) {
                 userSyncService.deleteUser(userId);
                 log.info("Processed DELETE event for user {}", userId);
-            }
-            else {
-                log.debug("Unhandled event type: {}", eventType);
+            } else {
+                log.debug("Unhandled event type: {}", opType);
             }
 
         } catch (Exception e) {

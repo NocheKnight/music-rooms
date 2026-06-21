@@ -24,8 +24,8 @@ keycloak:
   realm: music-realm
   client-id: music-app
   registration:
-    client-id: music-registration-client
-    client-secret: music-registration-secret
+    client-id: service-account
+    client-secret: IzxNqb0v2FDpQHA68zwiM7e4CWBgtRiV
 
 spring:
   application:
