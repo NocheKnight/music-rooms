@@ -15,7 +15,7 @@ public class AudioStreamService {
     public AudioStream getAudioStream(String youtubeUrl) throws Exception {
 
         ProcessBuilder ytDlp = new ProcessBuilder(
-                "yt-dlp",
+                "D:\\Downloads\\files for priglos\\yt-dlp.exe",
                 "-f", "bestaudio",
                 "--get-url",
                 youtubeUrl
@@ -50,7 +50,7 @@ public class AudioStreamService {
         log.info("getTrackMeta start: {}", youtubeUrl);
 
         ProcessBuilder ytDlp = new ProcessBuilder(
-                "yt-dlp",
+                "D:\\Downloads\\files for priglos\\yt-dlp.exe",
                 "--no-playlist",
                 "--print", "%(title)s\n%(uploader)s\n%(duration)s",
                 youtubeUrl

@@ -20,4 +20,4 @@ spring:
 
 services:
   queue-service:
-    url: http://queue-service:8083
+    url: http://localhost:8083
