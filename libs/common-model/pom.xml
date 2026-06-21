@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Родительский pom (если у вас есть общий родитель) -->
+    <parent>
+        <groupId>ru.music</groupId>
+        <artifactId>music-rooms-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>common-model</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>Common Model</name>
+    <description>Общие JPA-сущности, репозитории и сервисы для всех микросервисов</description>
+
+    <dependencies>
+        <!-- Spring Data JPA (обязательно для сущностей и репозиториев) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <scope>provided</scope> <!-- provided, т.к. будет доступен через сервисы -->
+        </dependency>
+
+        <!-- PostgreSQL драйвер – нужен для работы с БД, но не обязателен для компиляции, т.к. будет в сервисах -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Lombok для сокращения кода (аннотации @Data, @Builder и т.д.) -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Jackson для работы с Instant (если нужен, но обычно транзитивно) -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Для тестирования (опционально) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>25</source>
+                    <target>25</target>
+                </configuration>
+            </plugin>
+            <!-- Не используем spring-boot-maven-plugin, т.к. это библиотека -->
+        </plugins>
+    </build>
+</project>

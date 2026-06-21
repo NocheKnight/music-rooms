@@ -29,6 +29,12 @@ public class SecurityConfig {
                                 "api/auth/**"
                         ).permitAll()
                         .pathMatchers("/api/*/v3/api-docs/**").permitAll()
+                        .pathMatchers("/realms/**", "/protocol/**", "/resources/**", "/auth/**",
+                                "/admin/**",
+                                "/js/**",
+                                "/css/**",
+                                "/img/**",
+                                "/auth/**").permitAll()
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}))
