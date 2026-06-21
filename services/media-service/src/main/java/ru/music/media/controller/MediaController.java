@@ -13,9 +13,9 @@ import ru.music.media.feign.QueueServiceClient;
 import ru.music.media.service.AudioStreamService;
 import ru.music.media.service.BroadcastSession;
 import ru.music.media.service.RoomSessionManager;
-import ru.music.queue.dto.AddTrackRequest;
-import ru.music.queue.dto.TrackDto;
-import ru.music.queue.model.TrackSource;
+import ru.music.media.dto.AddTrackRequest;
+import ru.music.media.dto.TrackDto;
+import ru.music.media.model.TrackSource;
 
 import java.util.Map;
 import java.util.UUID;
@@ -84,7 +84,7 @@ public class MediaController {
 
         AddTrackRequest request = new AddTrackRequest();
         request.setName(meta.title());
-        request.setArtist("Unknown"); // yt-dlp может дать и автора
+        request.setArtist("Unknown");
         request.setDurationSec((int) meta.durationSeconds());
         request.setSource(TrackSource.YOUTUBE);
         request.setStreamUrl(youtubeUrl);
