@@ -1,0 +1,221 @@
+services:
+  api-gateway:
+    container_name: api-gateway
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  room-service:
+    container_name: room-service
+    build:
+      context: .
+      dockerfile: services/room-service/Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  webhook-handler-service:
+    container_name: webhook-handler-service
+    build:
+      context: .
+      dockerfile: services/webhook-handler-service/Dockerfile
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    volumes:
+      - ./logs:/app/logs
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      room-service:
+        condition: service_started
+
+  websocket-server:
+    container_name: websocket-server
+    build:
+      context: .
+      dockerfile: services/websocket-server/Dockerfile
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+
+  queue-service:
+    container_name: queue-service
+    build:
+      context: .
+      dockerfile: services/queue-service/Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  media-service:
+    container_name: media-service
+    build:
+      context: .
+      dockerfile: services/media-service/Dockerfile
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # PostgreSQL для хранения данных
+  postgres:
+    image: postgres:16-alpine
+    container_name: music_postgres
+    environment:
+      POSTGRES_DB: music_rooms
+      POSTGRES_USER: music_user
+      POSTGRES_PASSWORD: music_pass
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U music_user -d music_rooms"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis для кеша, Pub/Sub, состояния плеера
+  redis:
+    image: redis:7.4-alpine
+    container_name: music_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # RabbitMQ как брокер сообщений для STOMP и межсервисного общения
+  rabbitmq:
+    image: rabbitmq:4.0-management-alpine
+    container_name: music_rabbitmq
+    command: /bin/bash -c "rabbitmq-plugins enable rabbitmq_stomp && rabbitmq-server"
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI
+      - "61613:61613" # STOMP
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_ENABLED_PLUGINS: "rabbitmq_management,rabbitmq_stomp"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Keycloak с собственной PostgreSQL
+  keycloak-db:
+    image: postgres:16-alpine
+    container_name: keycloak_db
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    volumes:
+      - keycloak_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Keycloak с плагином для отправки событий в RabbitMQ
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.6
+    container_name: music_keycloak
+    user: root
+    command: start-dev --http-port=8080 --import-realm
+    environment:
+      # База данных
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+
+      # Хост и порт
+      KC_HOSTNAME: localhost
+      KC_HTTP_PORT: 8080
+
+      # Администратор
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+
+      # 👇 НАСТРОЙКА ПЛАГИНА KEYCLOAK-TO-RABBITMQ
+      KK_TO_RMQ_URL: rabbitmq
+      KK_TO_RMQ_PORT: 5672
+      KK_TO_RMQ_VHOST: /
+      KK_TO_RMQ_EXCHANGE: keycloak_events
+      KK_TO_RMQ_USERNAME: guest
+      KK_TO_RMQ_PASSWORD: guest
+
+      # 👇 ВКЛЮЧАЕМ ПЛАГИН (ВАЖНО!)
+      KC_SPI_EVENTS_LISTENER: rabbitmq
+
+    volumes:
+      - ./services/providers:/opt/keycloak/providers   # 👈 МОНТИРУЕМ ПАПКУ С ПЛАГИНАМИ
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+    ports:
+      - "8081:8080"
+    depends_on:
+      - keycloak-db
+      - rabbitmq  # 👈 ЯВНАЯ ЗАВИСИМОСТЬ ОТ RABBITMQ
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# Объявление томов для сохранения данных
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  keycloak_db_data:

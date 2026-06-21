@@ -1,0 +1,20 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: websocket-server
+
+  config:
+    activate:
+      on-profile: docker
+
+  rabbitmq:
+    host: rabbitmq
+    stomp-port: 61613
+    username: guest
+    password: guest
+    publisher-confirm-type: correlated
+    listener:
+      simple:
+        acknowledge-mode: manual

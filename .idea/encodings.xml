@@ -3,6 +3,8 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/libs/common-dto/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/libs/common-dto/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/libs/common-model/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/libs/common-model/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/libs/common-security/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/libs/common-security/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/libs/common-utils/src/main/java" charset="UTF-8" />
@@ -15,6 +17,10 @@
     <file url="file://$PROJECT_DIR$/services/queue-service/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/services/room-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/services/room-service/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/webhook-handler-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/webhook-handler-service/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/websocket-server/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/websocket-server/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
   </component>

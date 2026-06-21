@@ -28,23 +28,32 @@ public class UserIdAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    FilterChain chain) throws IOException, ServletException {
+                                    FilterChain chain) throws ServletException, IOException {
         String userIdHeader = request.getHeader("X-User-Id");
-        String userNameHeader = request.getHeader("X-User-Name");
-        String userEmailHeader = request.getHeader("X-User-Email");
 
-        if (userIdHeader != null && !userIdHeader.isEmpty()) {
-            try {
-                UUID userId = UUID.fromString(userIdHeader);
-                User user = userService.getOrCreateUser(userId, userNameHeader, userEmailHeader);
-                Authentication auth = new PreAuthenticatedAuthenticationToken(user, null, Collections.emptyList());
-                SecurityContextHolder.getContext().setAuthentication(auth);
-                request.setAttribute("currentUser", user);
-                log.debug("Authenticated user: {}", userId);
-            } catch (IllegalArgumentException e) {
-                log.warn("Invalid X-User-Id format: {}", userIdHeader);
-            }
+        if (userIdHeader == null || userIdHeader.isEmpty()) {
+            log.debug("No X-User-Id header present");
+            chain.doFilter(request, response);
+            return;
         }
+
+        try {
+            UUID keycloakId = UUID.fromString(userIdHeader);
+            User user = userService.getUserByKeycloakId(keycloakId);
+            Authentication auth = new PreAuthenticatedAuthenticationToken(user, null, Collections.emptyList());
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            request.setAttribute("currentUser", user);
+            log.debug("Authenticated user: {}", keycloakId);
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid X-User-Id format: {}", userIdHeader);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid user ID format");
+            return;
+        } catch (RuntimeException e) {
+            log.warn("User not found for X-User-Id: {}", userIdHeader);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User not found");
+            return;
+        }
+
         chain.doFilter(request, response);
     }
 }

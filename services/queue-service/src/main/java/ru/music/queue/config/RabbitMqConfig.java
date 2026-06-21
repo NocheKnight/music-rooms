@@ -14,15 +14,7 @@ import tools.jackson.databind.json.JsonMapper;
 @Slf4j
 public class RabbitMqConfig {
 
-    public static final String TRACK_CHANGED_EXCHANGE = "track.changed.exchange";
-    public static final String TRACK_CHANGED_ROUTING_KEY = "track.changed";
-    public static final String QUEUE_FINISHED_QUEUE = "queue.finished.queue";
-    public static final String QUEUE_FINISHED_ROUTING_KEY = "queue.finished";
-
-    @Bean
-    public TopicExchange trackChangedExchange() {
-        return ExchangeBuilder.topicExchange(TRACK_CHANGED_EXCHANGE).durable(true).build();
-    }
+    public static final String TRACK_CHANGED_EXCHANGE = "amq.topic";
 
     @Bean
     public JacksonJsonMessageConverter messageConverter(JsonMapper jsonMapper) {
@@ -49,17 +41,5 @@ public class RabbitMqConfig {
             }
         });
         return template;
-    }
-
-    @Bean
-    public Queue queueFinishedQueue() {
-        return QueueBuilder.durable(QUEUE_FINISHED_QUEUE).build();
-    }
-
-    @Bean
-    public Binding queueFinishedBinding() {
-        return BindingBuilder.bind(queueFinishedQueue())
-                .to(trackChangedExchange())
-                .with(QUEUE_FINISHED_ROUTING_KEY);
     }
 }

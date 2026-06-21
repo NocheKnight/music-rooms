@@ -1,0 +1,34 @@
+server:
+  port: 8084
+
+spring:
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: guest
+    password: guest
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    schemas: public
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+  cloud:
+    openfeign:
+      okhttp:
+        enabled: true
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/music_rooms
+    username: music_user
+    password: music_pass
+
+  application:
+    name: media-service
+
+services:
+  queue-service:
+    url: http://queue-service:8083

@@ -1,0 +1,52 @@
+server:
+  port: 8082
+
+spring:
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    schemas: public
+  jpa:
+    hibernate:
+      ddl-auto: none
+  websocket:
+    relay:
+      host: rabbitmq
+      port: 61613
+
+  datasource:
+    url: jdbc:postgresql://postgres:5432/music_rooms
+    username: music_user
+    password: music_pass
+
+  redis:
+    host: redis
+    port: 6379
+
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: guest
+    password: guest
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/music-realm
+          jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
+
+services:
+  queue-service:
+    url: http://queue-service:8083
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+logging:
+  level:
+    org.flywaydb: DEBUG
+    org.springframework.jdbc: DEBUG

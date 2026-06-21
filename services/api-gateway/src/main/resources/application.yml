@@ -19,29 +19,47 @@ springdoc:
       # Включаем генерацию OpenAPI-спецификации для самого Gateway
       enabled: true
 
+keycloak:
+  url: http://localhost:8081
+  realm: music-realm
+  client-id: music-app
+  registration:
+    client-id: service-account
+    client-secret: IzxNqb0v2FDpQHA68zwiM7e4CWBgtRiV
+
 spring:
   application:
     name: api-gateway
 
   cloud:
     gateway:
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOrigins: "*"
-            allowedMethods: "*"
-            allowedHeaders: "*"
-            allowCredentials: true
-
       server:
         webflux:
           routes:
+            # --- Маршрут для Keycloak ---
+#            - id: keycloak
+#              uri: http://localhost:8081  # Внутренний порт Keycloak
+#              predicates:
+#                - Path=/realms/**, /resources/**, /auth/**, /protocol/**, /admin/**, /js/**, /css/**, /img/**
+#              filters:
+#                - RemoveResponseHeader=X-Frame-Options
+#                  args:
+#                    name: X-Forwarded-Proto
+#                    value: https
+#                - name: SetRequestHeader
+#                  args:
+#                    name: X-Forwarded-Host
+#                    value: af46-104-128-139-225.ngrok-free.app
+#                - name: SetRequestHeader
+#                  args:
+#                    name: X-Forwarded-Port
+#                    value: 443
+
             - id: room-service
-              uri: http://localhost:8082   # room-service будем запускать на 8082
+              uri: http://localhost:8082
               predicates:
                 - Path=/api/rooms/**
               filters:
-                # Убираем JWT-валидацию, так как это делает Gateway
                 - name: RemoveRequestHeader
                   args:
                     name: Authorization
@@ -84,7 +102,23 @@ spring:
                 - Path=/api/media-service/v3/api-docs
               filters:
                 - RewritePath=/api/media-service/(?<segment>.*), /$\{segment}
-#  cloud:
+
+            - id: websocket-server-room-service
+              uri: ws://localhost:8082
+              predicates:
+                - Path=/api/ws/**
+              filters:
+                - RewritePath=/api/ws(?<segment>/?.*), /ws${segment}
+                - StripPrefix=0
+
+            - id: websocket-server-queue-service
+              uri: ws://localhost:8085
+              predicates:
+                - Path=/api/ws/**
+              filters:
+                - RewritePath=/api/ws(?<segment>/?.*), /ws${segment}
+                - StripPrefix=0
+  #  cloud:
 #    gateway:
 #      routes:
 #        # Маршрут для room-service
@@ -131,8 +165,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8081/realms/music-realm
-          jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
+          jwk-set-uri: http://localhost:8081/realms/music-realm/protocol/openid-connect/certs
 
   # Виртуальные потоки (опционально)
   threads:

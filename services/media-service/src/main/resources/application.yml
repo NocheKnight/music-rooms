@@ -1,0 +1,23 @@
+server:
+  port: 8084
+
+spring:
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    schemas: public
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/music_rooms
+    username: music_user
+    password: music_pass
+
+  application:
+    name: media-service
+
+services:
+  queue-service:
+    url: http://queue-service:8083

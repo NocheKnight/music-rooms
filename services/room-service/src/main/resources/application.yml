@@ -1,0 +1,56 @@
+server:
+  port: 8082
+
+spring:
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    schemas: public
+  jpa:
+    hibernate:
+      ddl-auto: none
+  websocket:
+    relay:
+      host: localhost
+      port: 61613
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/music_rooms
+    username: music_user
+    password: music_pass
+
+  redis:
+    host: localhost
+    port: 6379
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    publisher-confirm-type: correlated
+    listener:
+      simple:
+        acknowledge-mode: manual
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8081/realms/music-realm
+          jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
+
+services:
+  queue-service:
+    url: http://localhost:8083
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+logging:
+  level:
+    org.flywaydb: DEBUG
+    org.springframework.jdbc: DEBUG
