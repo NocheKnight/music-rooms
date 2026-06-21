@@ -61,6 +61,10 @@ public class DefaultQueueService implements QueueService {
 
         log.info("Track id before save = {}", track.getId());
         Track savedTrack = trackRepository.save(track);
+        if (queue.getCurrentTrackPosition() == 0) {
+            publishTrackChangedEvent(queue, savedTrack);
+        }
+
         Queue savedQueue = queueRepository.save(queue);
         log.info("Track {} added to room {} at position {}", savedTrack.getId(), roomId, position);
 
