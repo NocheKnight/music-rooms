@@ -1,0 +1,148 @@
+server:
+  port: 8080   # Gateway будет слушать 8080, а room-service сместим на другой порт
+
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    # Список всех сервисов, которые будут отображаться в выпадающем списке
+    urls:
+      - name: API Gateway
+        url: /v3/api-docs
+      - name: Room Service
+        url: /api/room-service/v3/api-docs
+      - name: Queue Service
+        url: /api/queue-service/v3/api-docs
+      - name: Media Service
+        url: /api/media-service/v3/api-docs
+    api-docs:
+      # Включаем генерацию OpenAPI-спецификации для самого Gateway
+      enabled: true
+
+keycloak:
+  url: http://keycloak:8080
+  realm: music-realm
+  client-id: music-client
+  registration:
+    client-id: music-registration-client
+    client-secret: music-registration-secret
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: room-service
+              uri: http://room-service:8082
+              predicates:
+                - Path=/api/rooms/**
+              filters:
+                - name: RemoveRequestHeader
+                  args:
+                    name: Authorization
+
+            - id: room-service-swagger
+              uri: http://room-service:8082
+              predicates:
+                - Path=/api/room-service/v3/api-docs
+              filters:
+                - RewritePath=/api/room-service/(?<segment>.*), /$\{segment}
+
+            - id: queue-service-api
+              uri: http://queue-service:8083
+              predicates:
+                - Path=/api/queue/**
+              filters:
+                - name: RemoveRequestHeader
+                  args:
+                    name: Authorization
+
+            - id: queue-service-swagger
+              uri: http://queue-service:8083
+              predicates:
+                - Path=/api/queue-service/v3/api-docs
+              filters:
+                - RewritePath=/api/queue-service/(?<segment>.*), /$\{segment}
+
+            - id: media-service-api
+              uri: http://media-service:8084
+              predicates:
+                - Path=/api/media/**
+              filters:
+                - name: RemoveRequestHeader
+                  args:
+                    name: Authorization
+
+            - id: media-service-swagger
+              uri: http://media-service:8084
+              predicates:
+                - Path=/api/media-service/v3/api-docs
+              filters:
+                - RewritePath=/api/media-service/(?<segment>.*), /$\{segment}
+  #  cloud:
+  #    gateway:
+  #      routes:
+  #        # Маршрут для room-service
+  #        - id: room-service
+  #          uri: http://localhost:8082   # room-service будем запускать на 8082
+  #          predicates:
+  #            - Path=/api/rooms/**
+  #          filters:
+  #            - name: RequestRateLimiter
+  #              args:
+  #                key-resolver: "#{@userKeyResolver}"
+  #                redis-rate-limiter.replenishRate: 10
+  #                redis-rate-limiter.burstCapacity: 20
+  #            - name: AddRequestHeader
+  #              args:
+  #                name: X-User-Id
+  #                value: ""   # Будет динамически заполнено в SecurityConfig
+  #
+  #        # НОВЫЙ МАРШРУТ: для доступа к OpenAPI документации room-service
+  #        - id: room-service-swagger
+  #          uri: http://localhost:8082
+  #          predicates:
+  #            - Path=/api/room-service/v3/api-docs
+  #          filters:
+  #            - RewritePath=/api/room-service/(?<segment>.*), /$\{segment}
+  #
+  #        # Маршрут для будущего queue-service
+  #        - id: queue-service
+  #          uri: http://localhost:8083
+  #          predicates:
+  #            - Path=/api/queues/**
+  #      # Глобальные фильтры
+  #      default-filters:
+  #        - name: Retry
+  #          args:
+  #            retries: 3
+  #            statuses: 500,502,503
+  #        - name: StripPrefix
+  #          args:
+  #            parts: 0
+
+  # Security: валидация JWT через Keycloak
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://keycloak:8080/realms/music-realm/protocol/openid-connect/certs
+
+  # Виртуальные потоки (опционально)
+  threads:
+    virtual:
+      enabled: true
+
+# Настройки Redis для rate limiter (если нужен)
+# redis:
+#   host: localhost
+#   port: 6379
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG
