@@ -57,7 +57,7 @@ public class QueueController {
         return ResponseEntity.ok(Map.of("message", "Track removed successfully"));
     }
 
-    @PatchMapping("/tracks/next")
+    @PutMapping("/tracks/next")
     public ResponseEntity<Map<String, String>> next(
             @PathVariable(name = "roomId") UUID roomId,
             @AuthenticationPrincipal UUID userId) {
@@ -65,7 +65,7 @@ public class QueueController {
         return ResponseEntity.ok(Map.of("message", "Queue cleared successfully"));
     }
 
-    @PatchMapping("/tracks/previous")
+    @PutMapping("/tracks/previous")
     public ResponseEntity<Map<String, String>> previous(
             @PathVariable(name = "roomId") UUID roomId,
             @AuthenticationPrincipal UUID userId) {
