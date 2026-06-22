@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
+import ru.music.media.dto.PlaybackStatusEvent;
 import ru.music.media.dto.SessionStartedEvent;
 import ru.music.media.entity.TrackMeta;
 import ru.music.media.feign.QueueServiceClient;
@@ -46,6 +47,13 @@ public class RoomSessionManager {
             throw new IllegalStateException("No active session for room: " + roomId);
         }
         session.pause();
+
+        rabbitTemplate.convertAndSend(
+                "amq.topic",
+                "room." + roomId + ".playback.status",
+                new PlaybackStatusEvent(roomId, true)
+        );
+        log.info("Sent playback PAUSED event for room={}", roomId);
     }
 
     public void resumeSession(UUID roomId) {
@@ -54,6 +62,13 @@ public class RoomSessionManager {
             throw new IllegalStateException("No active session for room: " + roomId);
         }
         session.resume();
+        
+        rabbitTemplate.convertAndSend(
+                "amq.topic",
+                "room." + roomId + ".playback.status",
+                new PlaybackStatusEvent(roomId, false)
+        );
+        log.info("Sent playback RESUMED event for room={}", roomId);
     }
 
     public BroadcastSession getSession(UUID roomId) {

@@ -16,11 +16,6 @@ spring:
     hibernate:
       ddl-auto: none
 
-  cloud:
-    openfeign:
-      okhttp:
-        enabled: true
-
   datasource:
     url: jdbc:postgresql://localhost:5432/music_rooms
     username: music_user

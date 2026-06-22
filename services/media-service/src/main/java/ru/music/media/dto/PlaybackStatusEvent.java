@@ -1,0 +1,8 @@
+package ru.music.media.dto;
+
+import java.util.UUID;
+
+public record PlaybackStatusEvent(
+        UUID roomId,
+        boolean paused
+) {}
