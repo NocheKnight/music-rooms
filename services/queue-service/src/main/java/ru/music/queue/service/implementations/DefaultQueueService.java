@@ -66,6 +66,7 @@ public class DefaultQueueService implements QueueService {
         }
 
         Queue savedQueue = queueRepository.save(queue);
+        publishQueueChangedEvent(savedQueue);
         log.info("Track {} added to room {} at position {}", savedTrack.getId(), roomId, position);
 
         return trackMapper.entityToDto(savedTrack, position);
@@ -116,6 +117,7 @@ public class DefaultQueueService implements QueueService {
         queue.getTracks().remove(trackToMove);
         queue.getTracks().add(newPosition, trackToMove);
         queueRepository.save(queue);
+        publishQueueChangedEvent(queue);
 
         log.info("Track {} moved from position {} to {} in room {}",
                 trackId, oldPosition, newPosition, roomId);
@@ -136,6 +138,7 @@ public class DefaultQueueService implements QueueService {
 
         queue.getTracks().remove(trackToRemove);
         queueRepository.save(queue);
+        publishQueueChangedEvent(queue);
 
         log.info("Track {} removed from room {}", trackId, roomId);
     }
@@ -201,6 +204,7 @@ public class DefaultQueueService implements QueueService {
                 .build();
 
         Queue created = queueRepository.save(queue);
+        publishQueueChangedEvent(created);
         log.info("Queue created in room {}", roomId);
 
         return queueMapper.entityToDto(created);
@@ -234,6 +238,7 @@ public class DefaultQueueService implements QueueService {
         queue.getTracks().clear();
         queue.setCurrentTrackPosition(null);
         queueRepository.save(queue);
+        publishQueueChangedEvent(queue);
 
         log.info("Queue for room {} cleared. Removed {} tracks", roomId, queueSize);
     }
@@ -249,16 +254,30 @@ public class DefaultQueueService implements QueueService {
     }
 
     private void publishTrackChangedEvent(Queue queue, Track track) {
-        TrackDto trackInfo = trackMapper.entityToDto(track, queue.getTracks().indexOf(track));
-        TrackChangedEvent event = new TrackChangedEvent(queue.getRoomId(), trackInfo);
+        TrackDto trackDto = trackMapper.entityToDto(track, queue.getTracks().indexOf(track));
+        TrackChangedEvent event = new TrackChangedEvent(queue.getRoomId(), trackDto);
 
         String routingKey = "room." + queue.getRoomId() + ".track.changed";
 
         rabbitTemplate.convertAndSend(
-                RabbitMqConfig.TRACK_CHANGED_EXCHANGE,
+                RabbitMqConfig.EXCHANGE,
                 routingKey,
                 event
         );
         log.info("Published TrackChangedEvent for room {} to STOMP topic", queue.getRoomId());
+    }
+
+    private void publishQueueChangedEvent(Queue queue) {
+        QueueDto queueDto = queueMapper.entityToDto(queue);
+        QueueChangedEvent event = new QueueChangedEvent(queue.getRoomId(), queueDto.getTracks());
+
+        String routingKey = "room." + queue.getRoomId() + ".queue.changed";
+
+        rabbitTemplate.convertAndSend(
+                RabbitMqConfig.EXCHANGE,
+                routingKey,
+                event
+        );
+        log.info("Published QueueChangedEvent for room {} to STOMP topic", queue.getRoomId());
     }
 }
