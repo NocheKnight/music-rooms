@@ -99,6 +99,11 @@ spring:
               filters:
                 - RewritePath=/api/ws(?<segment>/?.*), /ws${segment}
                 - StripPrefix=0
+
+            - id: websocket-server
+              uri: ws://localhost:8085
+              predicates:
+                - Path=/api/ws/**
   #  cloud:
   #    gateway:
   #      routes:
