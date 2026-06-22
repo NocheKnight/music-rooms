@@ -12,7 +12,7 @@ import java.util.UUID;
         url = "${services.queue-service.url}"
 )
 public interface QueueServiceClient {
-    @PatchMapping("/tracks/next")
+    @PutMapping("/tracks/next")
     void nextTrack(@PathVariable(name = "roomId") UUID roomId);
 
     @PostMapping("/api/queue/{roomId}/tracks")
