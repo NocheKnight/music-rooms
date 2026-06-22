@@ -49,4 +49,14 @@ public class RoomController {
         log.debug("User {} fetching room {}", currentUser.getId(), roomId);
         return ResponseEntity.ok(roomService.getRoom(roomId));
     }
+
+    @DeleteMapping("/{roomId}/leave")
+    public ResponseEntity<Void> leaveRoom(
+            @PathVariable UUID roomId,
+            @AuthenticationPrincipal User currentUser
+    ) {
+        log.info("User {} leaving room {}", currentUser.getKeycloakId(), roomId);
+        roomService.leaveRoom(roomId, currentUser.getKeycloakId());
+        return ResponseEntity.noContent().build();
+    }
 }

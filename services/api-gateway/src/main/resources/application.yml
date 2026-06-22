@@ -104,7 +104,7 @@ spring:
                 - RewritePath=/api/media-service/(?<segment>.*), /$\{segment}
 
             - id: websocket-server-room-service
-              uri: ws://localhost:8082
+              uri: wss://localhost:8082
               predicates:
                 - Path=/api/ws/room/**
               filters:
@@ -112,7 +112,7 @@ spring:
                 - StripPrefix=0
 
             - id: websocket-server-queue-service
-              uri: ws://localhost:8083
+              uri: wss://localhost:8083
               predicates:
                 - Path=/api/ws/queue/**
               filters:
@@ -120,7 +120,7 @@ spring:
                 - StripPrefix=0
 
             - id: websocket-server
-              uri: ws://localhost:8085
+              uri: wss://localhost:8085
               predicates:
                 - Path=/api/ws/**
   #  cloud:

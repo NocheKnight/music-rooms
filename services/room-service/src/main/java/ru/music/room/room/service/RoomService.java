@@ -123,4 +123,21 @@ public class RoomService {
         );
         log.info("Published RoomChangedEvent with id {} to STOMP topic", room.getId());
     }
+
+    @Transactional
+    public void leaveRoom(UUID roomId, UUID userId) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("Room not found with id: " + roomId));
+
+        User user = userService.getUserByKeycloakId(userId);
+
+        if (!room.getParticipants().contains(user)) {
+            throw new RuntimeException("User is not a participant of this room");
+        }
+
+        room.getParticipants().remove(user);
+        roomRepository.save(room);
+        publishTrackChangedEvent(room);
+        log.info("User {} left room {}", userId, roomId);
+    }
 }
